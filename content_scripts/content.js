@@ -1,6 +1,6 @@
-console.log('gone!');
-// const leftPad = require("left-pad");
-// 
+const leftPad = require("left-pad");
+
+console.log(leftPad('gone!', 10));
 // const el = document.getElementById.bind(document);
 // const resultNode = el("result");
 // const textNode = el("text");
