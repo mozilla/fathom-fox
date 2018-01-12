@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "Tools for collecting a Fathom training corpus and, eventually, debugging a ruleset",
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "watch": "webpack -w"
   },
   "license": "MPL-2.0",
   "devDependencies": {
-    "webpack": "^2.3.2"
+    "webpack": "^2.3.2",
+    "webpack-webext-plugin": "github:MarZab/webpack-webext-plugin"
   },
   "dependencies": {
     "left-pad": "^1.1.1"
