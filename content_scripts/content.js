@@ -1,6 +1,6 @@
-const leftPad = require("left-pad");
+import freezeDry from 'freeze-dry';
 
-console.log(leftPad('gone!', 10));
+console.log('gone!');
 // const el = document.getElementById.bind(document);
 // const resultNode = el("result");
 // const textNode = el("text");

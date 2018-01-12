@@ -1,4 +1,4 @@
-function go() {
+async function go() {
     browser.tabs.executeScript({
         file: '/content_scripts/index.js'
     });
