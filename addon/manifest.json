@@ -12,5 +12,8 @@
     },
     "background": {
         "scripts": ["background_scripts/index.js"]
-    }
+    },
+    "permissions": [
+        "<all_urls>"
+    ]
 }

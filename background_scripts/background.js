@@ -1,7 +1,7 @@
-const leftPad = require("left-pad");
-
 function go() {
-    console.log('gone!');
+    browser.tabs.executeScript({
+        file: '/content_scripts/index.js'
+    });
 }
 
 browser.browserAction.onClicked.addListener(go);

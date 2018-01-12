@@ -1,3 +1,4 @@
+console.log('gone!');
 // const leftPad = require("left-pad");
 // 
 // const el = document.getElementById.bind(document);
