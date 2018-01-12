@@ -6,7 +6,7 @@ const WebpackWebExt = require('webpack-webext-plugin');
 module.exports = {
     entry: {
         background_scripts: "./background_scripts/background.js",
-        popup: "./popup/left-pad.js"
+        content_scripts: "./content_scripts/content.js"
     },
     output: {
         path: path.resolve(__dirname, "addon"),
