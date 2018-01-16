@@ -1,7 +1,7 @@
 import freezeDry from 'freeze-dry';
 
 function tellBackgroundPage() {
-    browser.runtime.sendMessage('from content with love');
+    browser.runtime.sendMessage(document.getElementById('banner').innerText);
 }
 
 tellBackgroundPage();
