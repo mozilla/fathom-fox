@@ -7,8 +7,8 @@ async function go() {
 browser.browserAction.onClicked.addListener(go);
 
 function receiveMessage(message) {
-    console.log('received:' + message);
+    console.log('received: ' + message.html);
 }
 browser.runtime.onMessage.addListener(receiveMessage);
 
-// We've proven we can console.log from a promise then() callback.
+// We've proven we can console.log from a promise then() callback in the bg script.

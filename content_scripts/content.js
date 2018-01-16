@@ -1,7 +1,9 @@
 import freezeDry from 'freeze-dry';
 
 function tellBackgroundPage() {
-    browser.runtime.sendMessage(document.getElementById('banner').innerText);
+    freezeDry(window.document, document.URL)
+        .then((html) => browser.runtime.sendMessage({html}))
+        .catch((error) => browser.runtime.sendMessage({error}));
 }
 
 tellBackgroundPage();
