@@ -6,8 +6,19 @@ async function go() {
 }
 browser.browserAction.onClicked.addListener(go);
 
-function receiveMessage(message) {
-    console.log('received: ' + message.html);
+async function receiveMessage(message) {
+    const blob = new Blob([message.html], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    try {
+        await browser.downloads.download({url,
+                                          filename: 'MyPage.html',
+                                          saveAs: false});
+    } catch (e) {
+        console.log(e);
+    } finally {
+        // Give it 10 seconds; FF can be a bit slow.
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
+    }
 }
 browser.runtime.onMessage.addListener(receiveMessage);
 
