@@ -1,22 +1,35 @@
+const urls = [
+     'http://www.slashdot.org/',
+     'http://www.amazon.com/',
+     'http://www.startrek.com/',
+     'http://www.questionablecontent.net/'
+];
+
+/**
+ * Pop the next page off `urls`, and freeze-dry it.
+ */
+async function freezeNextPage() {
+    const url = urls.pop()
+    if (url === undefined) {
+        return;
+    }
+    const tab = await browser.tabs.create({url, active: true});
+    // Fire this and forget, because webpack wraps our top-level stuff in a
+    // function, and so we can't return anything. Instead, we pick up
+    // processing when the content script sends us a message, in
+    // saveHtml().
+    browser.tabs.executeScript(tab.id, {file: '/content_scripts/index.js'})
+                .catch((e) => console.log(`Error while freeze-drying: ${e}`));
+}
+
 /**
  * Handle clicks from the toolbar button.
  */
-async function go() {
+async function freezeAllPages() {
     await setViewportSize(1024, 768);
-    const urls = [
-         'http://www.slashdot.org/',
-         'http://www.amazon.com/'
-    ];
-    //NEXT: Okay, this works. Now make it not open 400 tabs at once.
-    for (const url of urls) {
-        const tab = await browser.tabs.create({url, active: true});
-        // Fire this and forget. We then pick up processing when the content
-        // script sends us a message, in saveHtml().
-        browser.tabs.executeScript(tab.id, {file: '/content_scripts/index.js'})
-                    .catch((e) => console.log(`Error while freeze-drying: ${e}`));
-    }
+    await freezeNextPage();
 }
-browser.browserAction.onClicked.addListener(go);
+browser.browserAction.onClicked.addListener(freezeAllPages);
 
 /**
  * Set the current window's size such that the content area is the size you
@@ -34,6 +47,7 @@ async function setViewportSize(width, height) {
 
 /**
  * Receive the serialized HTML from the content script, and save it to disk.
+ * Then trigger the processing of the next page.
  */
 async function saveHtml(message, sender, sendResponse) {
     const blob = new Blob([message.html], {type: 'text/html'});
@@ -52,6 +66,12 @@ async function saveHtml(message, sender, sendResponse) {
     }
     // Give it 10 seconds; FF can be a bit slow.
     window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
+    // Meanwhile, do another. Chaining the next onto the the end of the
+    // previous serializes them, which I hypothesize is good because it means
+    // the tab we're freezing is active. Sometimes various scripts seem to wait
+    // until the tab is active to do their DOM manipulation, which we want to
+    // capture.
+    freezeNextPage();
 }
 browser.runtime.onMessage.addListener(saveHtml);
 
