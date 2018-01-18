@@ -3,11 +3,18 @@
  */
 async function go() {
     await setViewportSize(1024, 768);
-    const tab = await browser.tabs.create({url: 'http://www.slashdot.org/', active: true});
-    // Fire this and forget. We then pick up processing when the content script
-    // sends us a message, in saveHtml().
-    browser.tabs.executeScript(tab.id, {file: '/content_scripts/index.js'})
-                .catch((err) => console.log(`Error while freeze-drying: ${err}`));
+    const urls = [
+         'http://www.slashdot.org/',
+         'http://www.amazon.com/'
+    ];
+    //NEXT: Okay, this works. Now make it not open 400 tabs at once.
+    for (const url of urls) {
+        const tab = await browser.tabs.create({url, active: true});
+        // Fire this and forget. We then pick up processing when the content
+        // script sends us a message, in saveHtml().
+        browser.tabs.executeScript(tab.id, {file: '/content_scripts/index.js'})
+                    .catch((e) => console.log(`Error while freeze-drying: ${e}`));
+    }
 }
 browser.browserAction.onClicked.addListener(go);
 
@@ -28,7 +35,7 @@ async function setViewportSize(width, height) {
 /**
  * Receive the serialized HTML from the content script, and save it to disk.
  */
-async function saveHtml(message) {
+async function saveHtml(message, sender, sendResponse) {
     const blob = new Blob([message.html], {type: 'text/html'});
     const url = URL.createObjectURL(blob);
     try {
@@ -36,11 +43,15 @@ async function saveHtml(message) {
                                           filename: 'MyPage.html',
                                           saveAs: false});
     } catch (e) {
-        console.log(e);
-    } finally {
-        // Give it 10 seconds; FF can be a bit slow.
-        window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
+        console.log(`Had an error while saving freeze-dried markup: ${e}`);
     }
+    try {
+        await browser.tabs.remove(sender.tab.id);
+    } catch (e) {
+        console.log(`Had an error while closing tab: ${e}`);
+    }
+    // Give it 10 seconds; FF can be a bit slow.
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
 }
 browser.runtime.onMessage.addListener(saveHtml);
 
