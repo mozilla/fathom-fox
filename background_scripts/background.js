@@ -1,7 +1,5 @@
 const urls = [
      'http://www.slashdot.org/',
-     'http://www.amazon.com/',
-     'http://www.startrek.com/',
      'http://www.questionablecontent.net/'
 ];
 
@@ -19,7 +17,7 @@ async function freezeNextPage() {
     // processing when the content script sends us a message, in
     // saveHtml().
     browser.tabs.executeScript(tab.id, {file: '/content_scripts/index.js'})
-                .catch((e) => console.log(`Error while freeze-drying: ${e}`));
+                .catch((e) => console.log(`Error while injecting freezing script into the tab: ${e}`));
 }
 
 /**
@@ -48,29 +46,38 @@ async function setViewportSize(width, height) {
 /**
  * Receive the serialized HTML from the content script, and save it to disk.
  * Then trigger the processing of the next page.
+ *
+ * There are 2 kinds of message I receive::
+ *
+ *     {error: 'error message'}
+ *     {html: 'the frozen HTML of a page'}
  */
 async function saveHtml(message, sender, sendResponse) {
-    const blob = new Blob([message.html], {type: 'text/html'});
-    const url = URL.createObjectURL(blob);
-    try {
-        await browser.downloads.download({url,
-                                          filename: 'MyPage.html',
-                                          saveAs: false});
-    } catch (e) {
-        console.log(`Had an error while saving freeze-dried markup: ${e}`);
+    if (message.hasOwnProperty('error')) {
+        console.log(`Error while freezing a page: ${message.error}`);
+    } else {
+        const blob = new Blob([message.html], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        try {
+            await browser.downloads.download({url,
+                                              filename: 'MyPage.html',
+                                              saveAs: false});
+        } catch (e) {
+            console.log(`Error while saving frozen markup: ${e}`);
+        }
+        try {
+            await browser.tabs.remove(sender.tab.id);
+        } catch (e) {
+            console.log(`Error while closing tab: ${e}`);
+        }
+        // Give it 10 seconds; FF can be a bit slow.
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
     }
-    try {
-        await browser.tabs.remove(sender.tab.id);
-    } catch (e) {
-        console.log(`Had an error while closing tab: ${e}`);
-    }
-    // Give it 10 seconds; FF can be a bit slow.
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
-    // Meanwhile, do another. Chaining the next onto the the end of the
-    // previous serializes them, which I hypothesize is good because it means
-    // the tab we're freezing is active. Sometimes various scripts seem to wait
-    // until the tab is active to do their DOM manipulation, which we want to
-    // capture.
+    // Whether or not this one had an error, do another. Chaining the next onto
+    // the the end of the previous serializes them, which I hypothesize is good
+    // because it means the tab we're freezing is active. Sometimes various
+    // scripts seem to wait until the tab is active to do their DOM
+    // manipulation, which we want to capture.
     freezeNextPage();
 }
 browser.runtime.onMessage.addListener(saveHtml);
