@@ -5,8 +5,8 @@ const WebpackWebExt = require('webpack-webext-plugin');
 
 module.exports = {
     entry: {
-        background_scripts: "./background_scripts/background.js",
-        content_scripts: "./content_scripts/content.js"
+        backgroundScripts: "./backgroundScripts/background.js",
+        contentScripts: "./contentScripts/content.js"
     },
     output: {
         path: path.resolve(__dirname, "addon"),

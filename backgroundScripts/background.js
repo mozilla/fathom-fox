@@ -1,6 +1,5 @@
 const urls = [
-     'http://www.slashdot.org/',
-     'http://www.questionablecontent.net/'
+     'http://www.grinchcentral.com/'
 ];
 
 /**
@@ -16,7 +15,7 @@ async function freezeNextPage() {
     // function, and so we can't return anything. Instead, we pick up
     // processing when the content script sends us a message, in
     // saveHtml().
-    browser.tabs.executeScript(tab.id, {file: '/content_scripts/index.js'})
+    browser.tabs.executeScript(tab.id, {file: '/contentScripts/index.js'})
                 .catch((e) => console.log(`Error while injecting freezing script into the tab: ${e}`));
 }
 
@@ -42,7 +41,7 @@ async function setViewportSize(width, height) {
     // showing about:blank, because webexts aren't allowed to inject scripts
     // there. So we open a page of our own first.
     const tab = await browser.tabs.create({url: '/pages/blank.html'});
-    const windowSizes = (await browser.tabs.executeScript(tab.id, {file: '/content_scripts/measureWindowSize.js'}))[0];
+    const windowSizes = (await browser.tabs.executeScript(tab.id, {file: '/contentScripts/measureWindowSize.js'}))[0];
     await browser.tabs.remove(tab.id);
     const window = await browser.windows.getCurrent();
     return browser.windows.update(
