@@ -36,11 +36,19 @@ browser.browserAction.onClicked.addListener(freezeAllPages);
  * @return a Promise that is resolved when the window size has been changed
  */
 async function setViewportSize(width, height) {
+    // Because window.outerHeight and friends are undefined from background
+    // scripts, we have to collect the info by injecting a content script into
+    // (arbitrarily) the active tab. However, we have to ensure that tab is not
+    // showing about:blank, because webexts aren't allowed to inject scripts
+    // there. So we open a page of our own first.
+    const tab = await browser.tabs.create({url: '/pages/blank.html'});
+    const windowSizes = (await browser.tabs.executeScript(tab.id, {file: '/content_scripts/measureWindowSize.js'}))[0];
+    await browser.tabs.remove(tab.id);
     const window = await browser.windows.getCurrent();
-    // Toolbars on the Mac on a fresh profile are 74px tall. We add that to get
-    // the content area to the given height. It would be lovely to not hard-
-    // code this.
-    return browser.windows.update(window.id, {width, height: height + 74});
+    return browser.windows.update(
+        window.id,
+        {width: windowSizes.outerWidth - windowSizes.innerWidth + width,
+         height: windowSizes.outerHeight - windowSizes.innerHeight + height});
 }
 
 /**
@@ -54,8 +62,10 @@ async function setViewportSize(width, height) {
  */
 async function saveHtml(message, sender, sendResponse) {
     if (message.hasOwnProperty('error')) {
+        // Receive an error report:
         console.log(`Error while freezing a page: ${message.error}`);
     } else {
+        // Receive a serialized HTML page:
         const blob = new Blob([message.html], {type: 'text/html'});
         const url = URL.createObjectURL(blob);
         try {
