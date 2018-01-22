@@ -5,12 +5,12 @@ const WebpackWebExt = require('webpack-webext-plugin');
 
 module.exports = {
     entry: {
-        backgroundScripts: "./backgroundScripts/background.js",
-        contentScripts: "./contentScripts/content.js"
+        background: "./src/background.js",
+        freezeDryThisPage: "./src/freezeDryThisPage.js"
     },
     output: {
         path: path.resolve(__dirname, "addon"),
-        filename: "[name]/index.js"
+        filename: "[name].js"
     },
     plugins: [
       new WebpackWebExt({

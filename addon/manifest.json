@@ -11,7 +11,7 @@
         "default_title": "Freeze-Dry Corpus"
     },
     "background": {
-        "scripts": ["backgroundScripts/index.js"]
+        "scripts": ["background.js"]
     },
     "permissions": [
         "<all_urls>",
