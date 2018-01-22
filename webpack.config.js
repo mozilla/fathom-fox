@@ -1,16 +1,16 @@
-const path = require("path");
+const path = require('path');
 
 const WebpackWebExt = require('webpack-webext-plugin');
 
 
 module.exports = {
     entry: {
-        background: "./src/background.js",
-        freezeDryThisPage: "./src/freezeDryThisPage.js"
+        background: './src/background.js',
+        freezeDryThisPage: './src/freezeDryThisPage.js'
     },
     output: {
-        path: path.resolve(__dirname, "addon"),
-        filename: "[name].js"
+        path: path.resolve(__dirname, 'addon'),
+        filename: '[name].js'
     },
     plugins: [
       new WebpackWebExt({
