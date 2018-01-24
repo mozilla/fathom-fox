@@ -28,29 +28,14 @@ async function freezeAllPages() {
     await setViewportSize(1024, 768);
     await freezeNextPage();
 }
-browser.browserAction.onClicked.addListener(freezeAllPages);
 
 /**
- * Set the current window's size such that the content area is the size you
- * pass in.
- *
- * @return a Promise that is resolved when the window size has been changed
+ * Open a new Corpus window.
  */
-async function setViewportSize(width, height) {
-    // Because window.outerHeight and friends are undefined from background
-    // scripts, we have to collect the info by injecting a content script into
-    // (arbitrarily) the active tab. However, we have to ensure that tab is not
-    // showing about:blank, because webexts aren't allowed to inject scripts
-    // there. So we open a page of our own first.
-    const tab = await browser.tabs.create({url: '/pages/blank.html'});
-    const windowSizes = (await browser.tabs.executeScript(tab.id, {file: '/measureWindowSize.js'}))[0];
-    await browser.tabs.remove(tab.id);
-    const window = await browser.windows.getCurrent();
-    return browser.windows.update(
-        window.id,
-        {width: windowSizes.outerWidth - windowSizes.innerWidth + width,
-         height: windowSizes.outerHeight - windowSizes.innerHeight + height});
+async function openCorpusWindow() {
+    browser.windows.create({url: '/pages/corpus.html'});
 }
+browser.browserAction.onClicked.addListener(openCorpusWindow);
 
 /**
  * Receive the serialized HTML from the content script, and save it to disk.
