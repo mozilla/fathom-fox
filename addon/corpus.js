@@ -1,10 +1,53 @@
 async function freezeAllPages() {
-    //freezeAllPages(document.getElementById('pages').value);
-    const window = await browser.windows.create({url: '/pages/blank.html'});
-    const blankTab = (await browser.tabs.query({windowId: window.id}))[0];
+    // TODO: Grey out Freeze button and field so you can't start 2 jobs at once or make the UI not reflect the process in progress.
+    // Make freezing window, and set its size. The blank page acts as a
+    // placeholder so we don't have to repeatedly (and slowly) open and close
+    // the window.
+    const windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
+    const blankTab = (await browser.tabs.query({windowId}))[0];
     await setViewportSize(blankTab, 1024, 768);
+
+    // Freeze the pages:
+    const urls = document.getElementById('pages').value.split('\n').filter(url => url.length > 0);
+
+    for (const url of urls) {
+        await freezePage(url, windowId);
+    }
+    browser.windows.remove(windowId);
 }
 document.getElementById('freeze').onclick = freezeAllPages;
+
+/**
+ * Serialize and download a page.
+ *
+ * @arg url {String} The URL of the page to download
+ * @arg windowId {Number} The ID of the window to load the page (as a new tab)
+ *     into for serialization
+ */
+async function freezePage(url, windowId) {
+    const tab = await browser.tabs.create({url, windowId, active: true});
+    // Can't get a return value out of this because webpack wraps our top-level
+    // stuff in a function. Instead, we use messaging.
+    // browser.downloads is good here.
+    await browser.tabs.executeScript(tab.id, {file: '/freezeDryThisPage.js'})
+                      .catch((e) => console.log(`Error while injecting freezing script into the tab: ${e}`));
+    const html = (await browser.tabs.sendMessage(tab.id, 'dummy')).response;
+    await download(html);
+    await browser.tabs.remove(tab.id);
+}
+
+/**
+ * Save the given HTML to the user's downloads folder.
+ */
+async function download(html) {
+    const blob = new Blob([html], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    await browser.downloads.download({url,
+                                      filename: 'MyPage.html',
+                                      saveAs: false});
+    // Give it 10 seconds; FF can be a bit slow.
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
+}
 
 /**
  * Set the current window's size such that the content area is the size you
