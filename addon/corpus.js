@@ -1,5 +1,7 @@
 async function freezeAllPages() {
-    // TODO: Grey out Freeze button and field so you can't start 2 jobs at once or make the UI not reflect the process in progress.
+    // Grey out Freeze button:
+    document.getElementById('freeze').disabled = true;
+
     // Make freezing window, and set its size. The blank page acts as a
     // placeholder so we don't have to repeatedly (and slowly) open and close
     // the window.
@@ -9,11 +11,18 @@ async function freezeAllPages() {
 
     // Freeze the pages:
     const urls = document.getElementById('pages').value.split('\n').filter(url => url.length > 0);
-
-    for (const url of urls) {
-        await freezePage(url, windowId);
+    let url;
+    try {
+        for (url of urls) {
+            await freezePage(url, windowId);
+        }
+    } catch (e) {
+        console.log(`Error while freezing page ${url}: ${e}`);
     }
-    browser.windows.remove(windowId);
+
+    // Clean up:
+    browser.windows.remove(windowId).catch(() => null);  // Swallow error if window is absent.
+    document.getElementById('freeze').disabled = false;
 }
 document.getElementById('freeze').onclick = freezeAllPages;
 

@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
   </head>
-  <body>
-    <textarea id="pages">https://www.grinchcentral.com/function-names-to-verb-or-not-to-verb
-https://www.grinchcentral.com/why-types-are-not-documentation</textarea>
-    <button type="button" id="freeze">Freeze<button>
+  <body class="browser-style" style="padding: 0 20px">
+    <h1>Corpus Download</h1>
+    <p>
+      This inlines the images, CSS, and other resources of pages and downloads them for use as an unchanging training corpus. Scripts are removed or deactivated, and external network resources that aren't inlined are blocked. The downloaded pages land in your usual downloads folder.
+    </p>
+    <label for="pages">Enter the pages to download, one per line:</label>
+    <textarea id="pages" placeholder="https://example.com/
+https://another.com/page" rows=10 class="browser-style"></textarea>
+    <div>
+      <button type="button" id="freeze" class="panel-section-footer-button">Download</button>
+    </div>
     <script src="../corpus.js"></script>
   </body>
 </html>
