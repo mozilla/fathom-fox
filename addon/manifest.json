@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "name": "Fathom WebExtension",
+    "name": "FathomFox",
     "version": "1.0.0",
     "description": "Tools for developing Fathom rulesets",
     "icons": {
