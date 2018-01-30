@@ -11,10 +11,11 @@ async function freezeAllPages() {
 
     // Freeze the pages:
     const urls = document.getElementById('pages').value.split('\n').filter(url => url.length > 0);
+    const freezeOptions = {wait: parseFloat(document.getElementById('wait').value.trim())};
     let url;
     try {
         for (url of urls) {
-            await freezePage(url, windowId);
+            await freezePage(url, windowId, freezeOptions);
         }
     } catch (e) {
         console.log(`Error while freezing page ${url}: ${e}`);
@@ -33,14 +34,14 @@ document.getElementById('freeze').onclick = freezeAllPages;
  * @arg windowId {Number} The ID of the window to load the page (as a new tab)
  *     into for serialization
  */
-async function freezePage(url, windowId) {
+async function freezePage(url, windowId, freezeOptions) {
     const tab = await browser.tabs.create({url, windowId, active: true});
     // Can't get a return value out of this because webpack wraps our top-level
     // stuff in a function. Instead, we use messaging.
     // browser.downloads is good here.
     await browser.tabs.executeScript(tab.id, {file: '/freezeDryThisPage.js'})
                       .catch((e) => console.log(`Error while injecting freezing script into the tab: ${e}`));
-    const html = (await browser.tabs.sendMessage(tab.id, 'dummy')).response;
+    const html = (await browser.tabs.sendMessage(tab.id, freezeOptions)).response;
     await download(html);
     await browser.tabs.remove(tab.id);
 }
