@@ -11,7 +11,8 @@ async function freezeAllPages() {
 
     // Freeze the pages:
     const urls = document.getElementById('pages').value.split('\n').filter(url => url.length > 0);
-    const freezeOptions = {wait: parseFloat(document.getElementById('wait').value.trim())};
+    const freezeOptions = {wait: parseFloat(document.getElementById('wait').value.trim()),
+                           shouldScroll: document.getElementById('shouldScroll').checked};
     let url;
     try {
         for (url of urls) {
