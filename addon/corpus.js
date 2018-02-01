@@ -19,13 +19,14 @@ async function freezeAllPages() {
     const urls = document.getElementById('pages').value.split('\n').filter(url => url.length > 0);
     const freezeOptions = {wait: parseFloat(document.getElementById('wait').value.trim()),
                            shouldScroll: document.getElementById('shouldScroll').checked};
-    let url;
-    try {
-        for (url of urls) {
+    for (const url of urls) {
+        try {
             await freezePage(url, windowId, freezeOptions);
+        } catch (e) {
+            // What can go wrong? Redirects mess up our messaging pipeline.
+            // Modal alerts hang us until the user dismisses them.
+            errorField.appendChild(document.createTextNode(`\nError while freezing ${url}: ${e}`));
         }
-    } catch (e) {
-        errorField.appendChild(document.createTextNode(`\nError while freezing ${url}: ${e}`));
     }
 
     // Clean up:
