@@ -2,6 +2,12 @@ async function freezeAllPages() {
     // Grey out Freeze button:
     document.getElementById('freeze').disabled = true;
 
+    // Clear error field:
+    const errorField = document.getElementById('errors');
+    while (errorField.firstChild) {
+        errorField.removeChild(errorField.firstChild);
+    }
+
     // Make freezing window, and set its size. The blank page acts as a
     // placeholder so we don't have to repeatedly (and slowly) open and close
     // the window.
@@ -19,7 +25,7 @@ async function freezeAllPages() {
             await freezePage(url, windowId, freezeOptions);
         }
     } catch (e) {
-        console.log(`Error while freezing page ${url}: ${e}`);
+        errorField.appendChild(document.createTextNode(`\nError while freezing ${url}: ${e}`));
     }
 
     // Clean up:
@@ -40,8 +46,7 @@ async function freezePage(url, windowId, freezeOptions) {
     // Can't get a return value out of this because webpack wraps our top-level
     // stuff in a function. Instead, we use messaging.
     // browser.downloads is good here.
-    await browser.tabs.executeScript(tab.id, {file: '/freezeDryThisPage.js'})
-                      .catch((e) => console.log(`Error while injecting freezing script into the tab: ${e}`));
+    await browser.tabs.executeScript(tab.id, {file: '/freezeDryThisPage.js'});
     const html = (await browser.tabs.sendMessage(tab.id, freezeOptions)).response;
     await download(html);
     await browser.tabs.remove(tab.id);
