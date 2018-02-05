@@ -17,5 +17,6 @@
     "permissions": [
         "<all_urls>",
         "downloads"
-    ]
+    ],
+    "devtools_page": "pages/devtoolsOpener.html"
 }
