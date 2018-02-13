@@ -39,15 +39,23 @@ document.getElementById('button_jquery').addEventListener('click', () => {
  * Update the GUI to reflect the currently inspected page the first time the
  * panel loads.
  *
- * When you navigate to a new page, the Console pane comes forward, so this re-
- * runs when the Fathom pane is brought forward again.
+ * This runs once per Fathom dev-panel per inspected page. (When you navigate
+ * to a new page, the Console pane comes forward, so this re- runs when the
+ * Fathom pane is brought forward again.)
  */
 async function initPanel() {
-    const result = await browser.devtools.inspectedWindow.eval(
-        'document.querySelectorAll("[data-fathom]")[0].getAttribute("data-fathom")');
-    if (!isError(result)) {
-        console.log(result[0]);
-    }
+    const backgroundPort = browser.runtime.connect();
+    console.log('Posting message from devpanel to background script.');
+    backgroundPort.postMessage({tabId: browser.devtools.inspectedWindow.tabId});  // "I want a mediated connection to this tab."
+//         {type: gimmePort,
+//          tabId: devtools.inspectedWindow.tabId});
+//     console.log('heyo');
+//     console.log(stuff);
+//     const result = await browser.devtools.inspectedWindow.eval(
+//         'document.querySelectorAll("[data-fathom]")[0].getAttribute("data-fathom")');
+//     if (!isError(result)) {
+//         console.log(result[0]);
+//     }
     // I don't seem able to pass DOM elements from the eval() context back into the panel. Simple values are fine. The docs, in fact, say only JSON values can be passed.
 }
 initPanel();
