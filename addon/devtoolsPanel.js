@@ -1,61 +1,50 @@
 /**
- * Return whether the result from an inspectedWindow.eval() call was an error.
- * Log it if it was.
+ * Return the result of a browser.devtools.inspectedWindow.eval call. Throw the
+ * error object on failure.
  */
-function isError(result) {
-    if (result[0] === undefined) {
-        const error = result[1];
-        if (error.isError) {
-            console.log(`Devtools error: ${error.code}`);
-        } else {
-            console.log(`JavaScript error: ${error.value}`);
-        }
-        return true;
+async function resultOfEval(codeString) {
+    let [result, error] = await browser.devtools.inspectedWindow.eval(codeString);
+    if (error !== undefined) {
+        throw error;
     }
-    return false;
+    return result;
 }
 
-/**
-Handle the result of evaluating the jQuery test script.
-Log the result of the test, or
-if there was an error, call handleError.
-*/
-function handlejQueryResult(result) {
-    if (!isError(result)) {
-        console.log(`id: ${result[0]}`);
+function updateUi(evalResult) {
+    if (!isError(evalResult)) {
+        const firstLabeledElementId = evalResult[0];
+        console.log(`result: ${firstLabeledElementId}`);
+        document.getElementById('smoo').innerHTML = firstLabeledElementId;
     }
 }
-/**
-When the user clicks the 'jquery' button,
-evaluate the jQuery script.
-*/
-const checkjQuery = '$0.id';
-document.getElementById('button_jquery').addEventListener('click', () => {
-  browser.devtools.inspectedWindow.eval(checkjQuery)
-    .then(handlejQueryResult);
-});
+
+const inspectedId = `
+(function inspectedElementPath() {
+    return $0.getAttribute('id');
+})()
+`;
+async function labelInspectedElement() {
+    console.log('Posting message from devpanel to background script.');
+    const id = await resultOfEval(inspectedId);
+    backgroundPort.postMessage({type: 'label', tabId: browser.devtools.inspectedWindow.tabId, element: id});
+}
+document.getElementById('label').addEventListener('click', labelInspectedElement);
 
 /**
  * Update the GUI to reflect the currently inspected page the first time the
  * panel loads.
  *
  * This runs once per Fathom dev-panel per inspected page. (When you navigate
- * to a new page, the Console pane comes forward, so this re- runs when the
- * Fathom pane is brought forward again.)
+ * to a new page, the Console pane comes forward, so this re-runs when the
+ * Fathom pane is brought forward again. It does not run twice when you switch
+ * away from and then back to the Fathom dev panel.)
  */
+let backgroundPort;
 async function initPanel() {
-    const backgroundPort = browser.runtime.connect();
-    console.log('Posting message from devpanel to background script.');
-    backgroundPort.postMessage({tabId: browser.devtools.inspectedWindow.tabId});  // "I want a mediated connection to this tab."
-//         {type: gimmePort,
-//          tabId: devtools.inspectedWindow.tabId});
-//     console.log('heyo');
-//     console.log(stuff);
-//     const result = await browser.devtools.inspectedWindow.eval(
-//         'document.querySelectorAll("[data-fathom]")[0].getAttribute("data-fathom")');
-//     if (!isError(result)) {
-//         console.log(result[0]);
-//     }
-    // I don't seem able to pass DOM elements from the eval() context back into the panel. Simple values are fine. The docs, in fact, say only JSON values can be passed.
+    backgroundPort = browser.runtime.connect();
+    // devpanel can mutate the inspected element to add a data attr. Worst case, it can remember it by its ID or add a generated one.
+
+    // When we load a new page with existing annotations:
+    browser.devtools.inspectedWindow.eval(`document.querySelectorAll("[data-fathom]")[0].id`).then(updateUi);
 }
 initPanel();

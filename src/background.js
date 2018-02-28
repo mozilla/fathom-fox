@@ -17,9 +17,9 @@ function connectADevPanel(port) {
     port.onMessage.addListener(blabToTab);
 
     /** Send a single message to a tab. */
-    async function blabToTab(message) {
-        console.log('Sending one-off message to tab', message.tabId);
-        const stuff = await browser.tabs.sendMessage(message.tabId, {type: 'gimmeStuff'});
+    async function blabToTab(request) {
+        console.log('Sending one-off message to tab', request.tabId);
+        const stuff = await browser.tabs.sendMessage(request.tabId, request);
         console.log('Received stuff from content script:', stuff);
         // Then send via the port to devpanel.
     }

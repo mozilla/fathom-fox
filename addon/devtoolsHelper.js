@@ -5,12 +5,18 @@
  * simple JSON objects around.) Essentially, this is the controller, and the
  * dev panel is the view.
  */
-// See if we can get the devtools and this to talk via messages so this can be the controller (and hold state) and the devtools pane can just be the view. Also, how do we get the reference from $0 into the content script?
+// How do we get the reference from $0 into the content script, which can add the data attr? Worst case, we can pass a path based on child numbers: root.2.4.3.1.
 
-function returnStuff(request) {
-    console.log('CS received:', request.type);  // NEXT: Why do I get <unavailable> here?
-    return Promise.resolve({response: 'Hi from cs!'});
+/**
+ * Top-level dispatcher for commands sent from the devpanel to this content
+ * script
+ */
+function dispatch(request) {
+    if (request.type === 'label') {
+        document.getElementById(request.element).setAttribute('data-fathom', 'boogled!');
+    }
+    return Promise.resolve({response: 'Here are the elements with Fathom data attrs.'});
 }
-browser.runtime.onMessage.addListener(returnStuff);
+browser.runtime.onMessage.addListener(dispatch);
 
 console.log('I am the content script!');
