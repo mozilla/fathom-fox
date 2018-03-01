@@ -8,12 +8,29 @@
 // How do we get the reference from $0 into the content script, which can add the data attr? Worst case, we can pass a path based on child numbers: root.2.4.3.1.
 
 /**
+ * Return an backward iterator over an Array.
+ */
+function *reversed(array) {
+    for (let i = array.length - 1; i >= 0; i--) {
+        yield array[i];
+    }
+}
+
+function elementAtPath(path) {
+    let node = document;
+    for (const index of reversed(path)) {
+        node = node.children[index];
+    }
+    return node;
+}
+
+/**
  * Top-level dispatcher for commands sent from the devpanel to this content
  * script
  */
 function dispatch(request) {
     if (request.type === 'label') {
-        document.getElementById(request.element).setAttribute('data-fathom', 'boogled!');
+        elementAtPath(request.elementPath).setAttribute('data-fathom', request.label);
     }
     return Promise.resolve({response: 'Here are the elements with Fathom data attrs.'});
 }

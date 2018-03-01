@@ -18,17 +18,40 @@ function updateUi(evalResult) {
     }
 }
 
-const inspectedId = `
+/**
+ * The function embedded herein returns an "index path" to the inspected
+ * element. A return value like [1, 4, 0] means the element could be found by
+ * going into the 0th element of the document (usually an <html> tag), then the
+ * 4th child of that tag, then finding the 1st child of that tag.
+ */
+const inspectedElementPathSource = `
 (function inspectedElementPath() {
-    return $0.getAttribute('id');
+    function indexOf(arrayLike, item) {
+        for (let i = 0; i < arrayLike.length; i++) {
+            if (arrayLike[i] === item) {
+                return i;
+            }
+        }
+        throw new Error('Item was not found in collection.');
+    }
+
+    const path = [];
+    let node = $0;
+    while (node.parentNode !== null) {
+        path.push(indexOf(node.parentNode.children, node));
+        node = node.parentNode;
+    }
+    return path;
 })()
 `;
 async function labelInspectedElement() {
-    console.log('Posting message from devpanel to background script.');
-    const id = await resultOfEval(inspectedId);
-    backgroundPort.postMessage({type: 'label', tabId: browser.devtools.inspectedWindow.tabId, element: id});
+    const path = await resultOfEval(inspectedElementPathSource);
+    backgroundPort.postMessage({type: 'label',
+                                tabId: browser.devtools.inspectedWindow.tabId,
+                                elementPath: path,
+                                label: document.getElementById('labelField').value});
 }
-document.getElementById('label').addEventListener('click', labelInspectedElement);
+document.getElementById('labelButton').addEventListener('click', labelInspectedElement);
 
 /**
  * Update the GUI to reflect the currently inspected page the first time the
@@ -45,6 +68,6 @@ async function initPanel() {
     // devpanel can mutate the inspected element to add a data attr. Worst case, it can remember it by its ID or add a generated one.
 
     // When we load a new page with existing annotations:
-    browser.devtools.inspectedWindow.eval(`document.querySelectorAll("[data-fathom]")[0].id`).then(updateUi);
+    //browser.devtools.inspectedWindow.eval(`document.querySelectorAll("[data-fathom]")[0].id`).then(updateUi);
 }
 initPanel();

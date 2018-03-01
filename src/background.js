@@ -18,9 +18,9 @@ function connectADevPanel(port) {
 
     /** Send a single message to a tab. */
     async function blabToTab(request) {
-        console.log('Sending one-off message to tab', request.tabId);
+        // console.log('Sending one-off message to tab', request.tabId);
         const stuff = await browser.tabs.sendMessage(request.tabId, request);
-        console.log('Received stuff from content script:', stuff);
+        // console.log('Received stuff from content script:', stuff);
         // Then send via the port to devpanel.
     }
 }
