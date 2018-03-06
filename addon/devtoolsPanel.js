@@ -9,6 +9,7 @@ async function resultOfEval(codeString) {
     }
     return result;
 }
+let backgroundPort = browser.runtime.connect();
 
 function updateUi(evalResult) {
     if (!isError(evalResult)) {
@@ -62,11 +63,7 @@ document.getElementById('labelButton').addEventListener('click', labelInspectedE
  * Fathom pane is brought forward again. It does not run twice when you switch
  * away from and then back to the Fathom dev panel.)
  */
-let backgroundPort;
 async function initPanel() {
-    backgroundPort = browser.runtime.connect();
-    // devpanel can mutate the inspected element to add a data attr. Worst case, it can remember it by its ID or add a generated one.
-
     // When we load a new page with existing annotations:
     //browser.devtools.inspectedWindow.eval(`document.querySelectorAll("[data-fathom]")[0].id`).then(updateUi);
 }
