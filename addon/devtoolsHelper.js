@@ -5,24 +5,6 @@
  * simple JSON objects around.) Essentially, this is the controller, and the
  * dev panel is the view.
  */
-// How do we get the reference from $0 into the content script, which can add the data attr? Worst case, we can pass a path based on child numbers: root.2.4.3.1.
-
-/**
- * Return an backward iterator over an Array.
- */
-function *reversed(array) {
-    for (let i = array.length - 1; i >= 0; i--) {
-        yield array[i];
-    }
-}
-
-function elementAtPath(path) {
-    let node = document;
-    for (const index of reversed(path)) {
-        node = node.children[index];
-    }
-    return node;
-}
 
 /**
  * Top-level dispatcher for commands sent from the devpanel to this content
@@ -30,10 +12,8 @@ function elementAtPath(path) {
  */
 function dispatch(request) {
     if (request.type === 'label') {
-        elementAtPath(request.elementPath).setAttribute('data-fathom', request.label);
+        elementAtPath(request.elementPath, document).setAttribute('data-fathom', request.label);
     }
     return Promise.resolve({response: 'Here are the elements with Fathom data attrs.'});
 }
 browser.runtime.onMessage.addListener(dispatch);
-
-console.log('I am the content script!');

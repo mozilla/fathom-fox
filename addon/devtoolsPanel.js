@@ -16,7 +16,7 @@ async function labelInspectedElement() {
      * 4th child of that tag, then finding the 1st child of that tag.
      */
     const inspectedElementPathSource = `
-    (function inspectedElementPath() {
+    (function elementPath(element) {
         function indexOf(arrayLike, item) {
             for (let i = 0; i < arrayLike.length; i++) {
                 if (arrayLike[i] === item) {
@@ -27,13 +27,13 @@ async function labelInspectedElement() {
         }
 
         const path = [];
-        let node = $0;
+        let node = element;
         while (node.parentNode !== null) {
             path.push(indexOf(node.parentNode.children, node));
             node = node.parentNode;
         }
         return path;
-    })()
+    })($0)
     `;
 
     const path = await resultOfEval(inspectedElementPathSource);
