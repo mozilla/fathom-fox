@@ -1,14 +1,3 @@
-/**
- * Return the result of a browser.devtools.inspectedWindow.eval call. Throw the
- * error object on failure.
- */
-async function resultOfEval(codeString) {
-    let [result, error] = await browser.devtools.inspectedWindow.eval(codeString);
-    if (error !== undefined) {
-        throw error;
-    }
-    return result;
-}
 let backgroundPort = browser.runtime.connect();
 
 function updateUi(evalResult) {
@@ -61,7 +50,8 @@ document.getElementById('labelButton').addEventListener('click', labelInspectedE
  * This runs once per Fathom dev-panel per inspected page. (When you navigate
  * to a new page, the Console pane comes forward, so this re-runs when the
  * Fathom pane is brought forward again. It does not run twice when you switch
- * away from and then back to the Fathom dev panel.)
+ * away from and then back to the Fathom dev panel. Contents of the dev panel
+ * are preserved across that interaction.)
  */
 async function initPanel() {
     // When we load a new page with existing annotations:
