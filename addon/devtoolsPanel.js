@@ -8,33 +8,34 @@ function updateUi(evalResult) {
     }
 }
 
-/**
- * The function embedded herein returns an "index path" to the inspected
- * element. A return value like [1, 4, 0] means the element could be found by
- * going into the 0th element of the document (usually an <html> tag), then the
- * 4th child of that tag, then finding the 1st child of that tag.
- */
-const inspectedElementPathSource = `
-(function inspectedElementPath() {
-    function indexOf(arrayLike, item) {
-        for (let i = 0; i < arrayLike.length; i++) {
-            if (arrayLike[i] === item) {
-                return i;
-            }
-        }
-        throw new Error('Item was not found in collection.');
-    }
-
-    const path = [];
-    let node = $0;
-    while (node.parentNode !== null) {
-        path.push(indexOf(node.parentNode.children, node));
-        node = node.parentNode;
-    }
-    return path;
-})()
-`;
 async function labelInspectedElement() {
+    /**
+     * The function embedded herein returns an "index path" to the inspected
+     * element. A return value like [1, 4, 0] means the element could be found by
+     * going into the 0th element of the document (usually an <html> tag), then the
+     * 4th child of that tag, then finding the 1st child of that tag.
+     */
+    const inspectedElementPathSource = `
+    (function inspectedElementPath() {
+        function indexOf(arrayLike, item) {
+            for (let i = 0; i < arrayLike.length; i++) {
+                if (arrayLike[i] === item) {
+                    return i;
+                }
+            }
+            throw new Error('Item was not found in collection.');
+        }
+
+        const path = [];
+        let node = $0;
+        while (node.parentNode !== null) {
+            path.push(indexOf(node.parentNode.children, node));
+            node = node.parentNode;
+        }
+        return path;
+    })()
+    `;
+
     const path = await resultOfEval(inspectedElementPathSource);
     backgroundPort.postMessage({type: 'label',
                                 tabId: browser.devtools.inspectedWindow.tabId,
