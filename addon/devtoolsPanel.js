@@ -44,6 +44,14 @@ async function labelInspectedElement() {
 }
 document.getElementById('labelButton').addEventListener('click', labelInspectedElement);
 
+async function freezePage() {
+    const tabId = browser.devtools.inspectedWindow.tabId;
+    backgroundPort.postMessage({type: 'freeze',
+                                tabId: tabId,
+                                options: {shouldScroll: false, wait: 0}});
+}
+document.getElementById('saveButton').addEventListener('click', freezePage);
+
 /**
  * Update the GUI to reflect the currently inspected page the first time the
  * panel loads.

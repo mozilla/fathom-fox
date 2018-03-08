@@ -6,7 +6,7 @@ const WebpackWebExt = require('webpack-webext-plugin');
 module.exports = {
     entry: {
         background: './src/background.js',
-        freezeDryThisPage: './src/freezeDryThisPage.js'
+        contentScript: './src/contentScript.js'
     },
     output: {
         path: path.resolve(__dirname, 'addon'),

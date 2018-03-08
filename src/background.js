@@ -14,14 +14,21 @@ browser.browserAction.onClicked.addListener(openCorpusWindow);
  */
 function connectADevPanel(port) {
     // Open a port to our content script on the tab that's being inspected.
-    port.onMessage.addListener(blabToTab);
-
-    /** Send a single message to a tab. */
-    async function blabToTab(request) {
-        // console.log('Sending one-off message to tab', request.tabId);
-        const stuff = await browser.tabs.sendMessage(request.tabId, request);
-        // console.log('Received stuff from content script:', stuff);
-        // Then send via the port to devpanel.
+    port.onMessage.addListener(handleMessage);
+    /**
+     * Handle any of the various messages that can come flying at the
+     * background script from various sources.
+     */
+    async function handleMessage(request) {
+        if (request.type === 'label') {
+            // console.log('Sending one-off message to tab', request.tabId);
+            const stuff = await browser.tabs.sendMessage(request.tabId, request);
+            // console.log('Received stuff from content script:', stuff);
+            // Then send via the port to devpanel.
+        } else if (request.type === 'freeze') {
+            const html = await browser.tabs.sendMessage(request.tabId, request);
+            download(html);
+        }
     }
 }
 browser.runtime.onConnect.addListener(connectADevPanel);
