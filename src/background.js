@@ -27,7 +27,7 @@ function connectADevPanel(port) {
             // Then send via the port to devpanel.
         } else if (request.type === 'freeze') {
             const html = await browser.tabs.sendMessage(request.tabId, request);
-            download(html);
+            download(html, {saveAs: true} );
         }
     }
 }
