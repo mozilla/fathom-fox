@@ -1,8 +1,11 @@
-browser.devtools.panels.create(
-  'Fathom',
-  '/icons/leftpad-32.png',
-  '/pages/devtoolsPanel.html'
-).then((extensionPanel) => extensionPanel.onShown.addListener(panelShowed));
+async function createPanel() {
+    const extensionPanel = await browser.devtools.panels.create(
+        'Fathom',
+        '/icons/leftpad-32.png',
+        '/pages/devtoolsPanel.html');
+    extensionPanel.onShown.addListener(panelShowed);
+    extensionPanel.onHidden.addListener(panelHid);
+}
 
 function panelShowed(extensionPanel) {
     const highlightInspectedElement = `
@@ -34,3 +37,17 @@ function panelShowed(extensionPanel) {
     // devpanel is forward.
     browser.devtools.inspectedWindow.eval(highlightInspectedElement);
 }
+
+function panelHid(extensionPanel) {
+    const removeHighlight = `
+        (function removeHighlight() {
+            let highlighter = document.getElementById('fathomHighlighter');
+            if (highlighter !== null) {
+                highlighter.parentNode.removeChild(highlighter);
+            }
+        })();
+        `;
+    browser.devtools.inspectedWindow.eval(removeHighlight);
+}
+
+createPanel();
