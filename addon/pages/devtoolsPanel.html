@@ -2,13 +2,20 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
   </head>
-  <body>
+  <body class="browser-style" style="padding: 0 20px">
+    <p>
+      Use the devtools Inspector to select an element, then label it here. Once you have labeled all the interesting elements, save.
+    <p>
     <div>
       <button id="labelButton">Label the inspected element</button>
+      as
       <input id="labelField" type="text">
     </div>
-    <button id="saveButton">Save</button>
+    <div>
+      <button id="saveButton">Save</button>
+    </div>
     <script src="../utils.js"></script>
     <script src="../devtoolsPanel.js"></script>
   </body>
