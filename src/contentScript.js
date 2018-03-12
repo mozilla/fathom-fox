@@ -35,16 +35,60 @@ async function freezeThisPage(options) {
  * to this content script
  */
 async function dispatch(request) {
-    if (request.type === 'label') {
-        elementAtPath(request.elementPath, document).setAttribute('data-fathom', request.label);
-        return Promise.resolve({});
-    } else if (request.type === 'freeze') {
-        // Freeze a page at the bidding of the corpus collector or devtools
-        // save button. Devtools panel calls this indirectly, by way of the
-        // background script, so it can download the result when done. Corpus
-        // collector calls directly.
-        const html = await freezeThisPage(request.options);
-        return Promise.resolve(html);
+    switch (request.type) {
+        case 'label':
+            elementAtPath(request.inspectedElement, document).setAttribute('data-fathom', request.label);
+            break;
+        case 'freeze':
+            // Freeze a page at the bidding of the corpus collector or devtools
+            // save button. Devtools panel calls this indirectly, by way of the
+            // background script, so it can download the result when done.
+            // Corpus collector calls directly.
+            hideHighlight();
+            const html = await freezeThisPage(request.options);
+            showHighlight(elementAtPath(request.inspectedElement, document));
+            return Promise.resolve(html);
+        case 'showHighlight':
+            showHighlight(elementAtPath(request.inspectedElement, document));
+            break;
+        case 'hideHighlight':
+            hideHighlight();
+            break;
     }
+    return Promise.resolve({});
 }
 browser.runtime.onMessage.addListener(dispatch);
+
+/**
+ * Add a highlighter div over the given element.
+ *
+ * Firefox otherwise does nothing to make clear that the inspector's selection
+ * is even preserved when a different devpanel is forward.
+ */
+function showHighlight(element) {
+    hideHighlight();
+    const highlighter = document.createElement('div');
+    highlighter.id = 'fathomHighlighter';
+    highlighter.style.backgroundColor = '#92DDF4';
+    highlighter.style.opacity = '.70';
+    highlighter.style.position = 'absolute';
+    const rect = element.getBoundingClientRect();
+    highlighter.style.width = rect.width + 'px';
+    highlighter.style.height = rect.height + 'px';
+    highlighter.style.top = rect.top + document.defaultView.pageYOffset + 'px';
+    highlighter.style.left = rect.left + document.defaultView.pageXOffset + 'px';
+    highlighter.style.padding = '0';
+    highlighter.style.margin = '0';
+    highlighter.style['border-radius'] = '0';
+    document.getElementsByTagName('html')[0].appendChild(highlighter);
+}
+
+/**
+ * Remove the highlighter div from the page.
+ */
+function hideHighlight() {
+    const highlighter = document.getElementById('fathomHighlighter');
+    if (highlighter !== null) {
+        highlighter.parentNode.removeChild(highlighter);
+    }
+}

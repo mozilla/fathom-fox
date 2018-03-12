@@ -1,3 +1,5 @@
+let backgroundPort = browser.runtime.connect();
+
 async function createPanel() {
     const extensionPanel = await browser.devtools.panels.create(
         'Fathom',
@@ -7,47 +9,17 @@ async function createPanel() {
     extensionPanel.onHidden.addListener(panelHid);
 }
 
-function panelShowed(extensionPanel) {
-    const highlightInspectedElement = `
-        (function highlightInspectedElement() {
-            let highlighter = document.getElementById('fathomHighlighter');
-            if (highlighter !== null) {
-                highlighter.parentNode.removeChild(highlighter);
-            }
-            highlighter = document.createElement('div');
-            highlighter.id = 'fathomHighlighter';
-            highlighter.style.backgroundColor = '#92DDF4';
-            highlighter.style.opacity = '.70';
-            highlighter.style.position = 'absolute';
-            const rect = $0.getBoundingClientRect();
-            highlighter.style.width = rect.width + 'px';
-            highlighter.style.height = rect.height + 'px';
-            highlighter.style.top = rect.top + document.defaultView.pageYOffset + 'px';
-            highlighter.style.left = rect.left + document.defaultView.pageXOffset + 'px';
-            highlighter.style.padding = '0';
-            highlighter.style.margin = '0';
-            highlighter.style['border-radius'] = '0';
-            document.getElementsByTagName('html')[0].appendChild(highlighter);
-        })();
-    `;
+async function panelShowed(extensionPanel) {
     // TODO: Pull data attrs into UI.
 
-    // Highlight the inspected element. Firefox otherwise does nothing to make
-    // clear that the inspector's selection is even preserved when a different
-    // devpanel is forward.
-    browser.devtools.inspectedWindow.eval(highlightInspectedElement);
+    backgroundPort.postMessage({type: 'showHighlight',
+                                tabId: browser.devtools.inspectedWindow.tabId,
+                                inspectedElement: await inspectedElementPath()});
 }
 
 function panelHid(extensionPanel) {
-    const removeHighlight = `
-        (function removeHighlight() {
-            let highlighter = document.getElementById('fathomHighlighter');
-            if (highlighter !== null) {
-                highlighter.parentNode.removeChild(highlighter);
-            }
-        })();
-        `;
-    browser.devtools.inspectedWindow.eval(removeHighlight);
+    backgroundPort.postMessage({type: 'hideHighlight',
+                                tabId: browser.devtools.inspectedWindow.tabId});
 }
 
 createPanel();

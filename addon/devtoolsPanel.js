@@ -15,39 +15,17 @@ async function labelInspectedElement() {
      * going into the 0th element of the document (usually an <html> tag), then the
      * 4th child of that tag, then finding the 1st child of that tag.
      */
-    const inspectedElementPathSource = `
-    (function elementPath(element) {
-        function indexOf(arrayLike, item) {
-            for (let i = 0; i < arrayLike.length; i++) {
-                if (arrayLike[i] === item) {
-                    return i;
-                }
-            }
-            throw new Error('Item was not found in collection.');
-        }
-
-        const path = [];
-        let node = element;
-        while (node.parentNode !== null) {
-            path.push(indexOf(node.parentNode.children, node));
-            node = node.parentNode;
-        }
-        return path;
-    })($0)
-    `;
-
-    const path = await resultOfEval(inspectedElementPathSource);
     backgroundPort.postMessage({type: 'label',
                                 tabId: browser.devtools.inspectedWindow.tabId,
-                                elementPath: path,
+                                inspectedElement: await inspectedElementPath(),
                                 label: document.getElementById('labelField').value});
 }
 document.getElementById('labelButton').addEventListener('click', labelInspectedElement);
 
 async function freezePage() {
-    const tabId = browser.devtools.inspectedWindow.tabId;
     backgroundPort.postMessage({type: 'freeze',
-                                tabId: tabId,
+                                tabId: browser.devtools.inspectedWindow.tabId,
+                                inspectedElement: await inspectedElementPath(),
                                 options: {shouldScroll: false, wait: 0}});
 }
 document.getElementById('saveButton').addEventListener('click', freezePage);

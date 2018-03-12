@@ -26,8 +26,19 @@ function connectADevPanel(port) {
             // console.log('Received stuff from content script:', stuff);
             // Then send via the port to devpanel.
         } else if (request.type === 'freeze') {
-            const html = await browser.tabs.sendMessage(request.tabId, request);
-            download(html, {saveAs: true} );
+            const html = await browser.tabs.sendMessage(
+                request.tabId,
+                {type: 'freeze',
+                 inspectedElement: request.inspectedElement,
+                 options: request.options});
+            download(html, {saveAs: true});
+        } else if (request.type === 'showHighlight') {
+            browser.tabs.sendMessage(
+                request.tabId,
+                {type: 'showHighlight',
+                 inspectedElement: request.inspectedElement});
+        } else if (request.type === 'hideHighlight') {
+            browser.tabs.sendMessage(request.tabId, {type: 'hideHighlight'});
         }
     }
 }

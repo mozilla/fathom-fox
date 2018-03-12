@@ -30,3 +30,32 @@ function *reversed(array) {
         yield array[i];
     }
 }
+
+/**
+ * Return an "index path" to the element inspected by the dev tools.
+ *
+ * Callable only from devtools panels or openers.
+ */
+async function inspectedElementPath() {
+    const inspectedElementPathSource = `
+        (function pathOfElement(element) {
+            function indexOf(arrayLike, item) {
+                for (let i = 0; i < arrayLike.length; i++) {
+                    if (arrayLike[i] === item) {
+                        return i;
+                    }
+                }
+                throw new Error('Item was not found in collection.');
+            }
+
+            const path = [];
+            let node = element;
+            while (node.parentNode !== null) {
+                path.push(indexOf(node.parentNode.children, node));
+                node = node.parentNode;
+            }
+            return path;
+        })($0)
+        `;
+    return resultOfEval(inspectedElementPathSource);
+}
