@@ -4,10 +4,11 @@
     "version": "1.0.0",
     "description": "Tools for developing Fathom rulesets",
     "icons": {
-        "32": "icons/leftpad-32.png"
+        "48": "icons/icon.svg",
+        "96": "icons/icon.svg"
     },
     "browser_action": {
-        "default_icon": "icons/leftpad-32.png",
+        "default_icon": "icons/icon.svg",
         "default_title": "Corpus Collector",
         "browser_style": true
     },

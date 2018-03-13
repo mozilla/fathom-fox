@@ -3,7 +3,7 @@ let backgroundPort = browser.runtime.connect();
 async function createPanel() {
     const extensionPanel = await browser.devtools.panels.create(
         'Fathom',
-        '/icons/leftpad-32.png',
+        '/icons/icon.svg',
         '/pages/devtoolsPanel.html');
     extensionPanel.onShown.addListener(panelShowed);
     extensionPanel.onHidden.addListener(panelHid);
