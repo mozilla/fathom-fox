@@ -44,26 +44,12 @@ document.getElementById('freeze').onclick = freezeAllPages;
  */
 async function freezePage(url, windowId, freezeOptions) {
     const tab = await browser.tabs.create({url, windowId, active: true});
-    // Can't get a return value out of this because webpack wraps our top-level
-    // stuff in a function. Instead, we use messaging.
-    // browser.downloads is good here.
-    await browser.tabs.executeScript(tab.id, {file: '/freezeDryThisPage.js'});
-    const html = (await browser.tabs.sendMessage(tab.id, freezeOptions)).response;
+    // Can't get a return value out of the content script because webpack wraps
+    // our top-level stuff in a function. Instead, we use messaging.
+    await browser.tabs.executeScript(tab.id, {file: '/contentScript.js'});
+    const html = (await browser.tabs.sendMessage(tab.id, {type: 'freeze', options: freezeOptions}));
     await download(html);
     await browser.tabs.remove(tab.id);
-}
-
-/**
- * Save the given HTML to the user's downloads folder.
- */
-async function download(html) {
-    const blob = new Blob([html], {type: 'text/html'});
-    const url = URL.createObjectURL(blob);
-    await browser.downloads.download({url,
-                                      filename: 'MyPage.html',
-                                      saveAs: false});
-    // Give it 10 seconds; FF can be a bit slow.
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000 * 10);
 }
 
 /**
