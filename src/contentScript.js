@@ -44,9 +44,13 @@ async function dispatch(request) {
             // save button. Devtools panel calls this indirectly, by way of the
             // background script, so it can download the result when done.
             // Corpus collector calls directly.
-            hideHighlight();
+            if (request.inspectedElement !== undefined) {
+                hideHighlight();
+            }
             const html = await freezeThisPage(request.options);
-            showHighlight(elementAtPath(request.inspectedElement, document));
+            if (request.inspectedElement !== undefined) {
+                showHighlight(elementAtPath(request.inspectedElement, document));
+            }
             return Promise.resolve(html);
         case 'showHighlight':
             showHighlight(elementAtPath(request.inspectedElement, document));
