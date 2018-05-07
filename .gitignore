@@ -1,4 +1,3 @@
 /node_modules
-/addon/background.js
 /addon/contentScript.js
 /addon/web-ext-artifacts

@@ -1,5 +1,3 @@
-let backgroundPort = browser.runtime.connect();
-
 /**
  * This holds references to DOM elements on behalf of our devtools panel which,
  * since it runs in a different process, can't get ahold of them. (You see this
