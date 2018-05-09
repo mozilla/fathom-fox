@@ -13,7 +13,7 @@ async function freezeAllPages() {
     // the window.
     const windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
     const blankTab = (await browser.tabs.query({windowId}))[0];
-    await tabCompletion(blankTab);
+    await tabCompletion(blankTab);  // Without this, "Error: No matching message handler"
     await setViewportSize(blankTab, 1024, 768);
 
     // Freeze the pages:
@@ -36,30 +36,35 @@ async function freezeAllPages() {
 }
 document.getElementById('freeze').onclick = freezeAllPages;
 
+/**
+ * Wait until the given tab reaches the "complete" status, then return the tab.
+ *
+ * This also deals with new tabs, which, before loading the requested page,
+ * begin at about:blank, which itself reaches the "complete" status.
+ */
 async function tabCompletion(tab) {
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    function isComplete(tab) {
+        return tab.status === 'complete' && tab.url !== 'about:blank';
     }
-    await sleep(2000);
-    return;
-    if (tab.status === 'loading') {
-        console.log('still loading');
+    if (!isComplete(tab)) {
         return new Promise((resolve, reject) => {
             const timer = setTimeout(
                 function giveUp() {
                     browser.tabs.onUpdated.removeListener(onUpdated);
-                    if (tab.status === 'complete') {
+                    if (isComplete(tab)()) {
                         // Give it one last chance to dodge race condition
                         // in which it completes between the initial test
                         // and installation of the update listener.
                         resolve(tab);
                     } else {
-                        reject(new Error('Tab never reached the "complete" state.'));
+                        reject(new Error('Tab never reached the "complete" state, just ' + tab.status + ' on ' + tab.url));
                     }
                 },
                 5000);
             function onUpdated(tabId, changeInfo, updatedTab) {
-                if (tabId === tab.id && updatedTab.status === 'complete') {
+                // Must use updatedTab below; using just `tab` seems to remain
+                // stuck to about:blank.
+                if (tabId === updatedTab.id && isComplete(updatedTab)) {
                     clearTimeout(timer);
                     browser.tabs.onUpdated.removeListener(onUpdated);
                     resolve(updatedTab);
@@ -68,7 +73,6 @@ async function tabCompletion(tab) {
             browser.tabs.onUpdated.addListener(onUpdated);
         });
     }
-    console.log('not still loading');
 }
 
 /**
