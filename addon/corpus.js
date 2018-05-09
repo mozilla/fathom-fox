@@ -51,7 +51,7 @@ async function tabCompletion(tab) {
             const timer = setTimeout(
                 function giveUp() {
                     browser.tabs.onUpdated.removeListener(onUpdated);
-                    if (isComplete(tab)()) {
+                    if (isComplete(tab)) {
                         // Give it one last chance to dodge race condition
                         // in which it completes between the initial test
                         // and installation of the update listener.
