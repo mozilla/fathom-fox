@@ -13,6 +13,7 @@ async function freezeAllPages() {
     // the window.
     const windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
     const blankTab = (await browser.tabs.query({windowId}))[0];
+    await tabCompletion(blankTab);  // Without this, "Error: No matching message handler"
     await setViewportSize(blankTab, 1024, 768);
 
     // Freeze the pages:
@@ -36,6 +37,45 @@ async function freezeAllPages() {
 document.getElementById('freeze').onclick = freezeAllPages;
 
 /**
+ * Wait until the given tab reaches the "complete" status, then return the tab.
+ *
+ * This also deals with new tabs, which, before loading the requested page,
+ * begin at about:blank, which itself reaches the "complete" status.
+ */
+async function tabCompletion(tab) {
+    function isComplete(tab) {
+        return tab.status === 'complete' && tab.url !== 'about:blank';
+    }
+    if (!isComplete(tab)) {
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(
+                function giveUp() {
+                    browser.tabs.onUpdated.removeListener(onUpdated);
+                    if (isComplete(tab)()) {
+                        // Give it one last chance to dodge race condition
+                        // in which it completes between the initial test
+                        // and installation of the update listener.
+                        resolve(tab);
+                    } else {
+                        reject(new Error('Tab never reached the "complete" state, just ' + tab.status + ' on ' + tab.url));
+                    }
+                },
+                5000);
+            function onUpdated(tabId, changeInfo, updatedTab) {
+                // Must use updatedTab below; using just `tab` seems to remain
+                // stuck to about:blank.
+                if (tabId === updatedTab.id && isComplete(updatedTab)) {
+                    clearTimeout(timer);
+                    browser.tabs.onUpdated.removeListener(onUpdated);
+                    resolve(updatedTab);
+                }
+            }
+            browser.tabs.onUpdated.addListener(onUpdated);
+        });
+    }
+}
+
+/**
  * Serialize and download a page.
  *
  * @arg url {String} The URL of the page to download
@@ -44,6 +84,7 @@ document.getElementById('freeze').onclick = freezeAllPages;
  */
 async function freezePage(url, windowId, freezeOptions) {
     const tab = await browser.tabs.create({url, windowId, active: true});
+    await tabCompletion(tab);
     // Can't get a return value out of the content script because webpack wraps
     // our top-level stuff in a function. Instead, we use messaging.
     await browser.tabs.executeScript(tab.id, {file: '/contentScript.js'});

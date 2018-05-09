@@ -21,7 +21,8 @@
     }],
     "permissions": [
         "<all_urls>",
-        "downloads"
+        "downloads",
+        "tabs"
     ],
     "devtools_page": "pages/devtoolsOpener.html"
 }
