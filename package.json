@@ -4,18 +4,17 @@
   "description": "Tools for collecting a Fathom training corpus and, eventually, debugging a ruleset",
   "scripts": {
     "build": "rollup -c",
-    "watch": "webpack -w"
+    "watch": "rollup -c -w"
   },
   "license": "MPL-2.0",
   "devDependencies": {
+    "rollup": "^0.58.2",
     "rollup-plugin-commonjs": "^9.1.3",
     "rollup-plugin-node-resolve": "^3.3.0",
-    "webpack": "^3.10.0",
-    "webpack-async-await": "^1.1.0",
-    "webpack-webext-plugin": "github:MarZab/webpack-webext-plugin"
+    "web-ext": "^1.7.0"
   },
   "dependencies": {
-    "freeze-dry": "^0.1.0",
-    "rollup": "^0.58.2"
+    "fathom-web": "^2.3.0",
+    "freeze-dry": "^0.1.0"
   }
 }

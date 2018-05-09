@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
+  </head>
+  <body class="browser-style" style="padding: 0 20px">
+    <h1>Train</h1>
+    <label for="ruleset">Ruleset:</label>
+    <select id="ruleset">
+      <option selected="selected" value="overlay">
+        overlay
+      </option>
+    </select>
+    <div>
+      <button type="button" id="train" class="panel-section-footer-button">Train on the tabs in this window</button>
+    </div>
+    <script src="../train.js"></script>
+    <script src="../trainables.js"></script>
+  </body>
+</html>
