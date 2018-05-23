@@ -56,6 +56,13 @@ async function dispatch(request) {
         case 'hideHighlight':
             hideHighlight();
             break;
+        case 'rulesetSucceeded':
+            // Run the trainable ruleset of the given ID with the given coeffs
+            // over the document, and report whether it found the right
+            // element.
+            const succeeded = (d, c) => c[0] + 1; //trainables.get(request.trainableId);
+            return succeeded(window.document, request.coeffs);
+            break;
     }
     return Promise.resolve({});
 }
