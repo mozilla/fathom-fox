@@ -26,3 +26,10 @@ Thanks to Treora for his excellent freeze-dry library!
 3. `cd fathom-fox`
 4. Install dependencies: `npm install`
 5. Bundle up the extension, and launch a new copy of Nightly with it already installed: `npm run build`
+
+## Version History
+
+### 1.0.1
+
+* Fix the "No matching message handler" errors when downloading using the Corpus Collector.
+* Switch from webpack to rollup.
