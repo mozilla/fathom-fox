@@ -18,7 +18,7 @@
     },
     "content_scripts": [{
         "matches": ["<all_urls>"],
-        "js": ["utils.js", "contentScript.js"]
+        "js": ["utils.js", "trainables.js", "contentScript.js"]
     }],
     "permissions": [
         "<all_urls>",

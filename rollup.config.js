@@ -25,7 +25,29 @@ export default [
         },
         plugins: [
             resolve(),
-            commonjs()
+            commonjs({
+                namedExports: {
+                    'wu': ['forEach', 'map']
+                }
+            }),
+            json()
+        ]
+    },
+    {
+        input: 'src/trainables.js',
+        output: {
+            file: 'addon/trainables.js',
+            format: 'iife',
+            name: 'trainables'
+        },
+        plugins: [
+            resolve(),
+            commonjs({
+                namedExports: {
+                    'wu': ['forEach', 'map', 'flatten']
+                }
+            }),
+            json()
         ]
     },
     {

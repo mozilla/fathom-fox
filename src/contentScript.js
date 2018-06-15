@@ -9,6 +9,7 @@
  */
 import freezeDry from 'freeze-dry';
 
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -60,9 +61,9 @@ async function dispatch(request) {
             // Run the trainable ruleset of the given ID with the given coeffs
             // over the document, and report whether it found the right
             // element.
-            const succeeded = (d, c) => c[0] + 1; //trainables.get(request.trainableId);
+            const succeeded = trainables.get(request.trainableId);
             return succeeded(window.document, request.coeffs);
-            break;
+            break;  // belt, suspenders
     }
     return Promise.resolve({});
 }

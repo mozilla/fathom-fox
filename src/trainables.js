@@ -1,11 +1,11 @@
-import {ruleset} from 'fathom-web';
+import {ruleset, rule, dom, type, score, out} from 'fathom-web';
 
 
 /**
- * A map of names to :class:`Run` subclasses, all of which become available to
- * train via the UI
+ * A map of names to callables that return whether a hard-coded ruleset query
+ * succeeded. All of these become available to train via the UI.
  */
-export const trainables = new Map();
+const trainables = new Map();
 
 trainables.set(
     'overlay',
@@ -46,3 +46,5 @@ trainables.set(
         return false;
     }
 );
+
+export default trainables;

@@ -15,7 +15,7 @@
     "web-ext": "^1.7.0"
   },
   "dependencies": {
-    "fathom-web": "^2.3.0",
+    "fathom-web": "file:../fathom",
     "freeze-dry": "^0.1.0"
   }
 }
