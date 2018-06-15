@@ -3,42 +3,16 @@ import resolve from 'rollup-plugin-node-resolve';
 import json from 'rollup-plugin-json';
 
 
-export default [
-    {
-        input: 'src/contentScript.js',
+/**
+ * Return typical rollup settings for a file of a given name.
+ */
+function mindlesslyFactoredOutSettings(name) {
+    return {
+        input: 'src/' + name + '.js',
         output: {
-            file: 'addon/contentScript.js',
+            file: 'addon/' + name + '.js',
             format: 'iife',
-            name: 'fathomFoxContentScript'
-        },
-        plugins: [
-            resolve(),
-            commonjs()
-        ]
-    },
-    {
-        input: 'src/train.js',
-        output: {
-            file: 'addon/train.js',
-            format: 'iife',
-            name: 'train'
-        },
-        plugins: [
-            resolve(),
-            commonjs({
-                namedExports: {
-                    'wu': ['forEach', 'map']
-                }
-            }),
-            json()
-        ]
-    },
-    {
-        input: 'src/trainables.js',
-        output: {
-            file: 'addon/trainables.js',
-            format: 'iife',
-            name: 'trainables'
+            name  // Convention: name the var the same thing.
         },
         plugins: [
             resolve(),
@@ -49,20 +23,11 @@ export default [
             }),
             json()
         ]
-    },
-    {
-        input: 'src/test.js',
-        output: {
-            file: 'addon/test.js',
-            format: 'iife',
-            name: 'test'
-        },
-        plugins: [
-            resolve(),
-            commonjs(),
-            json({
-                exclude: ['node_modules/**/package.json'],
-            })
-        ]
     }
+}
+
+export default [
+    mindlesslyFactoredOutSettings('contentScript'),
+    mindlesslyFactoredOutSettings('train'),
+    mindlesslyFactoredOutSettings('trainables')
 ];
