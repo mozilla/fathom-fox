@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "fathom-web": "file:../fathom",
-    "freeze-dry": "^0.1.0"
+    "freeze-dry": "^0.1.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.2.1"
   }
 }
