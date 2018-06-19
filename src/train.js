@@ -125,4 +125,20 @@ async function trainOnTabs() {
     document.getElementById('coeffs').appendChild(document.createTextNode(`Tuned coefficients for ${rulesetName}: ${tunedCoeffs}.\n`));
     document.getElementById('train').disabled = false;
 }
-document.getElementById('train').onclick = trainOnTabs;
+
+/**
+ * Draw and outfit the Train page.
+ */
+function initPage(document) {
+    document.getElementById('train').onclick = trainOnTabs;
+
+    // Ruleset menu:
+    const menu = document.getElementById('ruleset');
+    for (const trainableKey of trainables.keys()) {
+        const option = document.createElement('option');
+        option.text = option.value = trainableKey;
+        menu.add(option);
+    }
+}
+
+initPage(document, trainables);
