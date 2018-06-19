@@ -18,11 +18,6 @@ class Tuner {
         this.COOLING_FRACTION = coolingFraction;
         this.STEPS_PER_TEMP = stepsPerTemp;
         this.BOLTZMANNS = 1.3806485279e-23;
-        
-        // TODO: Remove. This is just for shortening PoC runtimes.
-        this.COOLING_STEPS = 1;
-        this.COOLING_FRACTION = .95;
-        this.STEPS_PER_TEMP = 1;
 
         this.tabs = tabs;
         this.trainableId = trainableId;
@@ -123,11 +118,11 @@ async function trainOnTabs() {
     const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
     //await setViewportSize(tabs[0], 1024, 768);  // for consistent element sizing in samples due to text wrap, etc.
 
-    const tuner = new Tuner(tabs, 'overlay');
+    const rulesetName = document.getElementById('ruleset').value;
+    const tuner = new Tuner(tabs, rulesetName);
     const tunedCoeffs = await tuner.anneal();
 
-
-    // Clean up:
+    document.getElementById('coeffs').appendChild(document.createTextNode(`Tuned coefficients for ${rulesetName}: ${tunedCoeffs}.\n`));
     document.getElementById('train').disabled = false;
 }
 document.getElementById('train').onclick = trainOnTabs;
