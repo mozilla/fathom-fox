@@ -15,7 +15,7 @@ trainables.set(
     // instance var.
     function succeeded(doc, [coeffSize]) {
         function heightAndWidth(element) {
-            const rect = boundingRect(element);
+            const rect = element.getBoundingClientRect();
             const height = rect.bottom - rect.top;
             const width = rect.right - rect.left;
             return [height, width];

@@ -1,6 +1,3 @@
-import {Annealer} from 'fathom-web/optimizers';
-
-
 /**
  * Awaitable setDefault that stores Promise values, not the Promises
  * themselves, in the map
@@ -14,9 +11,19 @@ async function asyncSetDefault(map, key, asyncDefaultMaker) {
     return defaultValue;
 }
 
-class Tuner extends Annealer {
-    constructor(tabs, trainableId) {
-        super(5000, 1, .95, 1);  // TODO: Remove. This is just for shortening PoC runtimes.
+class Tuner {
+    constructor(tabs, trainableId, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
+        this.INITIAL_TEMPERATURE = initialTemperature;
+        this.COOLING_STEPS = coolingSteps;
+        this.COOLING_FRACTION = coolingFraction;
+        this.STEPS_PER_TEMP = stepsPerTemp;
+        this.BOLTZMANNS = 1.3806485279e-23;
+        
+        // TODO: Remove. This is just for shortening PoC runtimes.
+        this.COOLING_STEPS = 1;
+        this.COOLING_FRACTION = .95;
+        this.STEPS_PER_TEMP = 1;
+
         this.tabs = tabs;
         this.trainableId = trainableId;
     }
@@ -81,21 +88,21 @@ class Tuner extends Annealer {
         // ruleset ID X (which carries its own right/wrong determiner which
         // itself knows what query to run), and tell me whether it was right or
         // wrong."
-        succeededs = await Promise.all(this.tabs.map(
+        const successes = await Promise.all(this.tabs.map(
             tab => browser.tabs.sendMessage(tab.id,
                                             {type: 'rulesetSucceeded',
                                              trainableId: this.trainableId,
                                              coeffs})));
-        let successes = 0;
-        for (const succeeded of succeededs) {
+        let numSuccesses = 0;
+        for (const succeeded of successes) {
             if (succeeded) {
-                successes += 1;
+                numSuccesses += 1;
             }
             console.log(succeeded);
         }
 
         // When all complete, combine for a total score:
-        return successes / tabs.length;
+        return numSuccesses / successes.length;
     }
 
     randomTransition(solution) {
