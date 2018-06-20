@@ -100,8 +100,21 @@ class Tuner {
         return numSuccesses / successes.length;
     }
 
-    randomTransition(solution) {
-        return [1];
+    /** Nudge a random coefficient in a random direction. */
+    randomTransition(coeffs) {
+        // We don't nudge by a percentage of the current value because then we
+        // never have any cache hits. Witness: x' := x + x*0.5. x' - x'*0.5 != x.
+        const ret = coeffs.slice();
+        const element = Math.floor(Math.random() * coeffs.length);
+        let nudge;
+
+        // Don't let weights go negative:
+        do {
+            nudge = Math.floor(Math.random() * 2) ? -1 : 1;
+        } while (ret[element] + nudge < 0);
+
+        ret[element] += nudge;
+        return ret;
     }
 
     initialSolution() {
