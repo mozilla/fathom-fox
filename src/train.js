@@ -36,7 +36,7 @@ class Tuner {
         let hits = 0, misses = 0;
         const seenSolutions = new Map();  // solution => cost
         for (let i = 0; i < this.COOLING_STEPS; i++) {
-            updateProgress(i / this.COOLING_STEPS);
+            updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
             const startCost = currentCost;
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
                 let newSolution = this.randomTransition(currentSolution);
@@ -127,10 +127,6 @@ async function trainOnTabs() {
     trainButton.disabled = true;
     const progressBar = document.getElementById('progress');
     progressBar.setAttribute('style', '');
-    const coeffsDiv = document.getElementById('coeffs');
-    if (coeffsDiv.firstChild) {
-        coeffsDiv.removeChild(coeffsDiv.firstChild);
-    }
 
     // TODO: Using "active" here rather than a tab ID presents a race condition
     // if you quickly switch away from the tab after clicking the Train button.
@@ -139,16 +135,22 @@ async function trainOnTabs() {
 
     const rulesetName = document.getElementById('ruleset').value;
     const tuner = new Tuner(tabs, rulesetName);
-    const [tunedCoeffs, tunedCost] = await tuner.anneal(updateProgressBar);
+    const [tunedCoeffs, tunedCost] = await tuner.anneal(updateProgress);
 
-    coeffsDiv.appendChild(document.createTextNode(`Tuned coefficients: [${tunedCoeffs}], yielding ${tunedCost.toFixed(1)}% accuracy`));
     progressBar.setAttribute('style', 'display: none');
     progressBar.setAttribute('value', 0);
     trainButton.disabled = false;
 }
 
-function updateProgressBar(ratio) {
+function updateProgress(ratio, bestSolution, bestCost) {
     document.getElementById('progress').setAttribute('value', ratio);
+
+    // Update best coeffs and accuracy:
+    const coeffsDiv = document.getElementById('coeffs');
+    if (coeffsDiv.firstChild) {
+        coeffsDiv.removeChild(coeffsDiv.firstChild);
+    }
+    coeffsDiv.appendChild(document.createTextNode(`Best tuned coefficients: [${bestSolution}], yielding ${bestCost.toFixed(1)}% accuracy`));
 }
 
 /**
