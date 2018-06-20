@@ -75,7 +75,7 @@ class Tuner {
         console.log('Iterations:', n, 'using', m, 'jumps.');
         console.log('Cache hits', hits, 'misses', misses);
         console.log('Cache hit rate', hits/(hits + misses));
-        return bestSolution;
+        return [bestSolution, bestCost];
     }
 
     async solutionCost(coeffs) {
@@ -139,9 +139,9 @@ async function trainOnTabs() {
 
     const rulesetName = document.getElementById('ruleset').value;
     const tuner = new Tuner(tabs, rulesetName);
-    const tunedCoeffs = await tuner.anneal(updateProgressBar);
+    const [tunedCoeffs, tunedCost] = await tuner.anneal(updateProgressBar);
 
-    coeffsDiv.appendChild(document.createTextNode(`Tuned coefficients: [${tunedCoeffs}]`));
+    coeffsDiv.appendChild(document.createTextNode(`Tuned coefficients: [${tunedCoeffs}], yielding ${tunedCost.toFixed(1)}% accuracy`));
     progressBar.setAttribute('style', 'display: none');
     progressBar.setAttribute('value', 0);
     trainButton.disabled = false;
