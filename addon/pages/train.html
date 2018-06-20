@@ -3,13 +3,48 @@
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
+    <style type="text/css">
+      /* Otherwise, the button changes shape when it's disabled. */
+      button {
+        padding: 12px;
+      }
+
+      .uiGrid {
+          display: grid;
+          grid-template-columns: 10em 30em;
+          grid-gap: 6px;
+      }
+
+      .uiGrid .label {
+        text-align: right;
+      }
+
+      .uiGrid select,
+      .uiGrid button,
+      .uiGrid meter {
+        width: 100%;
+      }
+    </style>
   </head>
   <body class="browser-style" style="padding: 0 20px">
     <h1>Train</h1>
-    <label for="ruleset">Ruleset:</label>
-    <select id="ruleset"></select>
-    <div>
-      <button type="button" id="train" class="panel-section-footer-button">Train on the tabs in this window</button>
+    <div class="uiGrid">
+      <div class="label">
+        <label for="ruleset">Ruleset:</label>
+      </div>
+      <div>
+        <select id="ruleset"></select>
+      </div>
+      <div>
+      </div>
+      <div>
+        <button type="button" id="train" class="panel-section-footer-button">Train on the tabs in this window</button>
+      </div>
+      <div>
+      </div>
+      <div>
+        <meter id="progress" style="display: none"></meter>
+      </div>
     </div>
     <p id="coeffs"></p>
     <script src="../trainables.js"></script>

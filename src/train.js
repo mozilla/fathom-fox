@@ -25,7 +25,7 @@ class Tuner {
 
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
     // What color is your function?
-    async anneal() {
+    async anneal(updateProgress) {
         let temperature = this.INITIAL_TEMPERATURE;
         let currentSolution = this.initialSolution();
         let bestSolution = currentSolution;
@@ -36,7 +36,7 @@ class Tuner {
         let hits = 0, misses = 0;
         const seenSolutions = new Map();  // solution => cost
         for (let i = 0; i < this.COOLING_STEPS; i++) {
-            console.log('Cooling step', i, 'of', this.COOLING_STEPS, '...');
+            updateProgress(i / this.COOLING_STEPS);
             const startCost = currentCost;
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
                 let newSolution = this.randomTransition(currentSolution);
@@ -93,7 +93,6 @@ class Tuner {
             if (succeeded) {
                 numSuccesses += 1;
             }
-            console.log(succeeded);
         }
 
         // When all complete, combine for a total score:
@@ -124,7 +123,10 @@ class Tuner {
 
 async function trainOnTabs() {
     // Grey out Train button:
-    document.getElementById('train').disabled = true;
+    const trainButton = document.getElementById('train');
+    trainButton.disabled = true;
+    const progressBar = document.getElementById('progress');
+    progressBar.setAttribute('style', '');
 
     // TODO: Using "active" here rather than a tab ID presents a race condition
     // if you quickly switch away from the tab after clicking the Train button.
@@ -133,10 +135,16 @@ async function trainOnTabs() {
 
     const rulesetName = document.getElementById('ruleset').value;
     const tuner = new Tuner(tabs, rulesetName);
-    const tunedCoeffs = await tuner.anneal();
+    const tunedCoeffs = await tuner.anneal(updateProgressBar);
 
     document.getElementById('coeffs').appendChild(document.createTextNode(`Tuned coefficients for ${rulesetName}: ${tunedCoeffs}.\n`));
-    document.getElementById('train').disabled = false;
+    progressBar.setAttribute('style', 'display: none');
+    progressBar.setAttribute('value', 0);
+    trainButton.disabled = false;
+}
+
+function updateProgressBar(ratio) {
+    document.getElementById('progress').setAttribute('value', ratio);
 }
 
 /**
