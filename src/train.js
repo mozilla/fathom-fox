@@ -127,6 +127,10 @@ async function trainOnTabs() {
     trainButton.disabled = true;
     const progressBar = document.getElementById('progress');
     progressBar.setAttribute('style', '');
+    const coeffsDiv = document.getElementById('coeffs');
+    if (coeffsDiv.firstChild) {
+        coeffsDiv.removeChild(coeffsDiv.firstChild);
+    }
 
     // TODO: Using "active" here rather than a tab ID presents a race condition
     // if you quickly switch away from the tab after clicking the Train button.
@@ -137,7 +141,7 @@ async function trainOnTabs() {
     const tuner = new Tuner(tabs, rulesetName);
     const tunedCoeffs = await tuner.anneal(updateProgressBar);
 
-    document.getElementById('coeffs').appendChild(document.createTextNode(`Tuned coefficients for ${rulesetName}: ${tunedCoeffs}.\n`));
+    coeffsDiv.appendChild(document.createTextNode(`Tuned coefficients: [${tunedCoeffs}]`));
     progressBar.setAttribute('style', 'display: none');
     progressBar.setAttribute('value', 0);
     trainButton.disabled = false;
