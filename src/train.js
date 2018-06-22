@@ -131,7 +131,7 @@ async function trainOnTabs() {
     // TODO: Using "active" here rather than a tab ID presents a race condition
     // if you quickly switch away from the tab after clicking the Train button.
     const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
-    //await setViewportSize(tabs[0], 1024, 768);  // for consistent element sizing in samples due to text wrap, etc.
+    await setViewportSize(tabs[0], 1024, 768);  // for consistent element sizing in samples due to text wrap, etc.
 
     const rulesetName = document.getElementById('ruleset').value;
     const tuner = new Tuner(tabs, rulesetName);
