@@ -54,7 +54,7 @@ class Tuner {
                     if (newCost < bestCost) {
                         bestCost = newCost;
                         bestSolution = newSolution;
-                        console.log('New best solution is ', newSolution, ' with cost ', newCost);
+                        updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
                     }
                 } else {
                     // Sometimes take non-improvements.
@@ -105,19 +105,16 @@ class Tuner {
         // never have any cache hits. Witness: x' := x + x*0.5. x' - x'*0.5 != x.
         const ret = coeffs.slice();
         const element = Math.floor(Math.random() * coeffs.length);
-        let nudge;
 
-        // Don't let weights go negative:
-        do {
-            nudge = Math.floor(Math.random() * 2) ? -1 : 1;
-        } while (ret[element] + nudge < 0);
-
-        ret[element] += nudge;
+        // Make coeffs <1 possible. Someday, maybe make the nudges smaller when
+        // the value is less, because things go more exponential there.
+        const direction = Math.floor(Math.random() * 2) ? -1 : 1;
+        ret[element] += direction;
         return ret;
     }
 
     initialSolution() {
-        return [1];
+        return [0, 2, 3];
     }
 }
 
@@ -150,7 +147,7 @@ function updateProgress(ratio, bestSolution, bestCost) {
     if (coeffsDiv.firstChild) {
         coeffsDiv.removeChild(coeffsDiv.firstChild);
     }
-    coeffsDiv.appendChild(document.createTextNode(`Best tuned coefficients: [${bestSolution}], yielding ${bestCost.toFixed(1)}% accuracy`));
+    coeffsDiv.appendChild(document.createTextNode(`Best coefficients so far: [${bestSolution}], yielding ${bestCost.toFixed(1)}% accuracy`));
 }
 
 /**
