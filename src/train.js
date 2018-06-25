@@ -83,20 +83,20 @@ class Tuner {
         // ruleset ID X (which carries its own right/wrong determiner which
         // itself knows what query to run), and tell me whether it was right or
         // wrong."
-        const successes = await Promise.all(this.tabs.map(
+        const attempts = await Promise.all(this.tabs.map(
             tab => browser.tabs.sendMessage(tab.id,
                                             {type: 'rulesetSucceeded',
                                              trainableId: this.trainableId,
                                              coeffs})));
         let numSuccesses = 0;
-        for (const succeeded of successes) {
+        for (const succeeded of attempts) {
             if (succeeded) {
                 numSuccesses += 1;
             }
         }
 
-        // When all complete, combine for a total score:
-        return numSuccesses / successes.length;
+        // When all complete, combine for a total cost:
+        return (attempts.length - numSuccesses) / attempts.length;
     }
 
     /** Nudge a random coefficient in a random direction. */
@@ -114,7 +114,7 @@ class Tuner {
     }
 
     initialSolution() {
-        return [0, 2, 3];
+        return [1, 0, 4];
     }
 }
 
@@ -147,7 +147,7 @@ function updateProgress(ratio, bestSolution, bestCost) {
     if (coeffsDiv.firstChild) {
         coeffsDiv.removeChild(coeffsDiv.firstChild);
     }
-    coeffsDiv.appendChild(document.createTextNode(`Best coefficients so far: [${bestSolution}], yielding ${bestCost.toFixed(1)}% accuracy`));
+    coeffsDiv.appendChild(document.createTextNode(`Best coefficients so far: [${bestSolution}], yielding ${((1 - bestCost) * 100).toFixed(1)}% accuracy`));
 }
 
 /**
