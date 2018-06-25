@@ -88,12 +88,7 @@ class Tuner {
                                             {type: 'rulesetSucceeded',
                                              trainableId: this.trainableId,
                                              coeffs})));
-        let numSuccesses = 0;
-        for (const succeeded of attempts) {
-            if (succeeded) {
-                numSuccesses += 1;
-            }
-        }
+        const numSuccesses = attempts.reduce((accum, value) => value ? accum + 1 : accum, 0);
 
         // When all complete, combine for a total cost:
         return (attempts.length - numSuccesses) / attempts.length;
