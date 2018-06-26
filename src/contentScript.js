@@ -61,8 +61,18 @@ async function dispatch(request) {
             // Run the trainable ruleset of the given ID with the given coeffs
             // over the document, and report whether it found the right
             // element.
-            const succeeded = trainables.get(request.trainableId);
-            return succeeded(window.document, request.coeffs);
+            const rules = trainables.get(request.trainableId)(request.coeffs);
+            const facts = rules.against(window.document);
+            // Assume the out() key and the data-fathom attr are both identical
+            // to the key of the trainable in the map.
+            const found = facts.get(request.trainableId);
+            if (found.length >= 1) {
+                const fnode = found[0];  // arbitrary pick
+                if (fnode.element.getAttribute('data-fathom') === request.trainableId) {
+                    return true;
+                }
+            }
+            return false;
             break;  // belt, suspenders
     }
     return Promise.resolve({});

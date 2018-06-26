@@ -80,9 +80,8 @@ class Tuner {
 
     async solutionCost(coeffs) {
         // Send a message to all the pages in the corpus, telling them "Run
-        // ruleset ID X (which carries its own right/wrong determiner which
-        // itself knows what query to run), and tell me whether it was right or
-        // wrong."
+        // ruleset ID X, and tell me whether its default query (the one with
+        // the same out() key as its ID) was right or wrong."
         const attempts = await Promise.all(this.tabs.map(
             tab => browser.tabs.sendMessage(tab.id,
                                             {type: 'rulesetSucceeded',

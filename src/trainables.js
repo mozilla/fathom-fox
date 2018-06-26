@@ -14,7 +14,7 @@ trainables.set(
     // optimize by rolling it into a class and storing coeffs explicitly in an
     // instance var. [Nope, Spidermonkey does it as efficiently as one could
     // hope, with just a {code, pointer to closure scope} pair.]
-    function succeeded(doc, [coeffBig, coeffNearlyOpaque, coeffMonochrome]) {
+    function parametrizedRules([coeffBig, coeffNearlyOpaque, coeffMonochrome]) {
         /**
          * We avoid returning full 0 from any rule, because that wipes out the tuner's
          * ability to adjust its impact by raising it to a power. .08 is big enough
@@ -140,16 +140,7 @@ trainables.set(
             rule(type('overlay'), score(monochrome)),
             rule(type('overlay').max(), out('overlay'))
         );
-
-        const facts = rules.against(doc);
-        const found = facts.get('overlay');
-        if (found.length >= 1) {
-            const fnode = found[0];  // arbitrary pick
-            if (fnode.element.getAttribute('data-fathom') === 'overlay') {
-                return true;
-            }
-        }
-        return false;
+        return rules;
     }
 );
 
