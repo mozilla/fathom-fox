@@ -36,6 +36,8 @@ class Tuner {
         let hits = 0, misses = 0;
         const seenSolutions = new Map();  // solution => cost
         for (let i = 0; i < this.COOLING_STEPS; i++) {
+            //const startMillis = (new Date()).getMilliseconds();
+            //const solutionsPerSecond = 
             updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
             const startCost = currentCost;
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
@@ -89,6 +91,8 @@ class Tuner {
                                              coeffs})));
         const numSuccesses = attempts.reduce((accum, value) => value ? accum + 1 : accum, 0);
 
+        //console.log(coeffs, attempts.reduce((failedUrls, didSucceed, i) => didSucceed ? failedUrls : (failedUrls + this.tabs[i].url + '\n'), ''));
+
         // When all complete, combine for a total cost:
         return (attempts.length - numSuccesses) / attempts.length;
     }
@@ -108,7 +112,7 @@ class Tuner {
     }
 
     initialSolution() {
-        return [1, 0, 4];
+        return [1, 0, 4];  // 62.5% accuracy with exponentiation-based weights
     }
 }
 
