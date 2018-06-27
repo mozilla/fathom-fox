@@ -112,7 +112,7 @@ class Tuner {
     }
 
     initialSolution() {
-        return [1, 0, 4];  // 62.5% accuracy with exponentiation-based weights
+        return [4, -2, 3, 2];  // 75.0% accuracy with exponentiation-based weights
     }
 }
 

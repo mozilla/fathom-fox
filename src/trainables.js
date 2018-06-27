@@ -14,7 +14,7 @@ trainables.set(
     // optimize by rolling it into a class and storing coeffs explicitly in an
     // instance var. [Nope, Spidermonkey does it as efficiently as one could
     // hope, with just a {code, pointer to closure scope} pair.]
-    function parametrizedRules([coeffBig, coeffNearlyOpaque, coeffMonochrome]) {
+    function parametrizedRules([coeffBig, coeffNearlyOpaque, coeffMonochrome, coeffClassOrId]) {
         /**
          * We avoid returning full 0 from any rule, because that wipes out the tuner's
          * ability to adjust its impact by raising it to a power. .08 is big enough
@@ -71,6 +71,33 @@ trainables.set(
             return trapezoid(1 - saturation(...rgb), .96, 1) ** coeffMonochrome;
         }
 
+        function suspiciousClassOrId(fnode) {
+            const element = fnode.element;
+            const attributeNames = ['class', 'id'];
+            let numOccurences = 0;
+            function numberOfSuspiciousSubstrings(value) {
+                return value.includes('popup') + value.includes('modal') + value.includes('overlay') + value.includes('underlay') + value.includes('backdrop')
+            }
+
+            for (const name of attributeNames) {
+                let values = element.getAttribute(name);
+                if (values) {
+                    if (!Array.isArray(values)) {
+                        values = [values];
+                    }
+                    for (const value of values) {
+                        numOccurences += numberOfSuspiciousSubstrings(value);
+                    }
+                }
+            }
+
+            // 1 occurrence gets us to about 70% certainty; 2, 90%. It bottoms
+            // out at ZEROISH and tops out at ONEISH.
+            // TODO: Figure out how to derive the magic number .1685 from
+            // ZEROISH and ONEISH.
+            return (-((.3 + ZEROISH) ** (numOccurences + .1685)) + ONEISH) ** coeffClassOrId;
+        }
+
         /* Utility procedures */
 
         /**
@@ -89,10 +116,11 @@ trainables.set(
         /**
          * Scale a number to the range [ZEROISH, ONEISH].
          *
-         * For a rising trapezoid, the result is zero until the input reaches zeroAt,
-         * then increases linearly until oneAt, at which it becomes one. To make a
-         * falling trapezoid, where the result is one to the left and zero to the
-         * right, use a zeroAt greater than oneAt.
+         * For a rising trapezoid, the result is ZEROISH until the input
+         * reaches zeroAt, then increases linearly until oneAt, at which it
+         * becomes ONEISH. To make a falling trapezoid, where the result is
+         * ONEISH to the left and ZEROISH to the right, use a zeroAt greater
+         * than oneAt.
          */
         function trapezoid(number, zeroAt, oneAt) {
             const isRising = zeroAt < oneAt;
@@ -138,6 +166,7 @@ trainables.set(
             rule(type('overlay'), score(big)),
             rule(type('overlay'), score(nearlyOpaque)),
             rule(type('overlay'), score(monochrome)),
+            rule(type('overlay'), score(suspiciousClassOrId)),
             rule(type('overlay').max(), out('overlay'))
         );
         return rules;
