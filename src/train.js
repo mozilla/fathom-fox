@@ -11,6 +11,14 @@ async function asyncSetDefault(map, key, asyncDefaultMaker) {
     return defaultValue;
 }
 
+/**
+ * Given a URL as a string, return the last segment, minus any ".html"
+ * extension.
+ */
+function urlFilename(url) {
+    return url.substring(url.lastIndexOf('/') + 1, url.endsWith('.html') ? url.length - 5 : url.length)
+}
+
 class Tuner {
     constructor(tabs, trainableId, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
         this.INITIAL_TEMPERATURE = initialTemperature;
@@ -31,6 +39,10 @@ class Tuner {
         let bestSolution = currentSolution;
         let currentCost = await this.solutionCost(currentSolution);
         let bestCost = currentCost;
+        updateProgress(0,
+                       bestSolution,
+                       bestCost,
+                       (await this.whetherTabsSucceeded(bestSolution)).map((succeeded, i) => [succeeded, urlFilename(this.tabs[i].url)]));
         let m = 0;
         let n = 0;
         let hits = 0, misses = 0;
@@ -56,7 +68,10 @@ class Tuner {
                     if (newCost < bestCost) {
                         bestCost = newCost;
                         bestSolution = newSolution;
-                        updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
+                        updateProgress(i / this.COOLING_STEPS,
+                                       bestSolution,
+                                       bestCost,
+                                       (await this.whetherTabsSucceeded(bestSolution)).map((succeeded, i) => [succeeded, urlFilename(this.tabs[i].url)]));
                     }
                 } else {
                     // Sometimes take non-improvements.
@@ -80,18 +95,24 @@ class Tuner {
         return [bestSolution, bestCost];
     }
 
-    async solutionCost(coeffs) {
-        // Send a message to all the pages in the corpus, telling them "Run
-        // ruleset ID X, and tell me whether its default query (the one with
-        // the same out() key as its ID) was right or wrong."
-        const attempts = await Promise.all(this.tabs.map(
+    /**
+     * Send a message to all the pages in the corpus, telling them "Run ruleset
+     * ID X, and tell me whether its default query (the one with the same out()
+     * key as its ID) was right or wrong."
+     */
+    async whetherTabsSucceeded(coeffs) {
+        return await Promise.all(this.tabs.map(
             tab => browser.tabs.sendMessage(tab.id,
                                             {type: 'rulesetSucceeded',
                                              trainableId: this.trainableId,
                                              coeffs})));
+    }
+
+    async solutionCost(coeffs) {
+        const attempts = await this.whetherTabsSucceeded(coeffs);
         const numSuccesses = attempts.reduce((accum, value) => value ? accum + 1 : accum, 0);
 
-        //console.log(coeffs, attempts.reduce((failedUrls, didSucceed, i) => didSucceed ? failedUrls : (failedUrls + this.tabs[i].url + '\n'), ''));
+        //console.log(coeffs, attempts.reduce((failedUrls, didSucceed, i) => didSucceed ? failedUrls : (failedUrls + this.tabs[i].url + '\n'), []));
 
         // When all complete, combine for a total cost:
         return (attempts.length - numSuccesses) / attempts.length;
@@ -137,15 +158,35 @@ async function trainOnTabs() {
     trainButton.disabled = false;
 }
 
-function updateProgress(ratio, bestSolution, bestCost) {
+function empty(element) {
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
+    }
+}
+
+function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
     document.getElementById('progress').setAttribute('value', ratio);
 
     // Update best coeffs and accuracy:
     const coeffsDiv = document.getElementById('coeffs');
-    if (coeffsDiv.firstChild) {
-        coeffsDiv.removeChild(coeffsDiv.firstChild);
+    const accuracyDiv = document.getElementById('accuracy');
+    Array.prototype.forEach.call(document.getElementsByClassName('output'),
+                                 e => e.classList.remove('output'));
+    coeffsDiv.classList.remove('output');
+    empty(coeffsDiv);
+    empty(accuracyDiv);
+    coeffsDiv.appendChild(document.createTextNode(`[${bestSolution}]`));
+    accuracyDiv.appendChild(document.createTextNode(`${((1 - bestCost) * 100).toFixed(1)}%`));
+    if (successesOrFailures) {
+        const goodBadDiv = document.getElementById('goodBad');
+        empty(goodBadDiv);
+        for (let [succeeded, name] of successesOrFailures) {
+            const newDiv = document.createElement('div');
+            newDiv.appendChild(document.createTextNode(name));
+            newDiv.setAttribute('class', succeeded ? 'good' : 'bad');
+            goodBadDiv.appendChild(newDiv);
+        }
     }
-    coeffsDiv.appendChild(document.createTextNode(`Best coefficients so far: [${bestSolution}], yielding ${((1 - bestCost) * 100).toFixed(1)}% accuracy`));
 }
 
 /**

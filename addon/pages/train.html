@@ -25,6 +25,37 @@
       .uiGrid meter {
         width: 100%;
       }
+
+      .uiGrid div.bottommost {
+        padding-bottom: 2em;
+      }
+
+      .output {
+        display: none;
+      }
+
+      p.diminuitive {
+        font-size: small;
+      }
+
+      #goodBad {
+        display: grid;
+        grid-gap: 2px;
+        grid-template-columns: repeat(8, 1fr);
+      }
+
+      #goodBad>div {
+        text-align: center;
+        padding: 3px;
+      }
+
+      #goodBad>.good {
+        background-color: rgb(173, 245, 175);
+      }
+
+      #goodBad>.bad {
+        background-color: rgb(255, 174, 186);
+      }
     </style>
   </head>
   <body class="browser-style" style="padding: 0 20px">
@@ -43,11 +74,21 @@
       </div>
       <div>
       </div>
-      <div>
+      <div class="bottommost">
         <meter id="progress" style="display: none"></meter>
       </div>
-      <div></div>
+      <div class="output label">
+        Coefficients:
+      </div>
       <div id="coeffs"></div>
+      <div class="output label">
+        Accuracy:
+      </div>
+      <div id="accuracy"></div>
+      <div class="output label">
+        Good/Bad:
+      </div>
+      <div id="goodBad"></div>
     </div>
     <script src="../trainables.js"></script>
     <script src="../utils.js"></script>
