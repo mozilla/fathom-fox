@@ -61,7 +61,7 @@ async function dispatch(request) {
             // Run the trainable ruleset of the given ID with the given coeffs
             // over the document, and report whether it found the right
             // element.
-            const rules = trainables.get(request.trainableId)(request.coeffs);
+            const rules = trainables.get(request.trainableId).rulesetMaker(request.coeffs);
             const facts = rules.against(window.document);
             // Assume the out() key and the data-fathom attr are both identical
             // to the key of the trainable in the map.

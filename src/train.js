@@ -133,7 +133,7 @@ class Tuner {
     }
 
     initialSolution() {
-        return [4, -2, 3, 2];  // 75.0% accuracy with exponentiation-based weights
+        return trainables.get(this.trainableId).coeffs;
     }
 }
 
@@ -192,7 +192,7 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
 /**
  * Draw and outfit the Train page.
  */
-function initPage(document) {
+function initPage(document, trainables) {
     document.getElementById('train').onclick = trainOnTabs;
 
     // Ruleset menu:
