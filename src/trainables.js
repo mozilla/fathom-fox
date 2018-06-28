@@ -9,7 +9,7 @@ const trainables = new Map();
 
 trainables.set(
     'overlay',
-    {coeffs: [4, -2, 3, 2],  // 75.0% accuracy with exponentiation-based weights
+    {coeffs: [2, 1, 2, 1],  // 81.3% accuracy with exponentiation-based weights
      rulesetMaker:
         // I don't think V8 is smart enough to compile this once and then sub in
         // new coeff values. I'm not sure about Spidermonkey. We may want to
@@ -57,7 +57,7 @@ trainables.set(
                 if (opacityStr == '1') {
                     ret = ZEROISH;
                 } else {
-                    const opacity = parseInt(opacityStr);
+                    const opacity = parseFloat(opacityStr);
                     ret = trapezoid(opacity, .4, .6);
                 }
                 //console.log("nearly opaque", ret ** coeffNearlyOpaque);
