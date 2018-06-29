@@ -9,7 +9,7 @@ const trainables = new Map();
 
 trainables.set(
     'overlay',
-    {coeffs: [2, 1, 2, 1],  // 81.3% accuracy with exponentiation-based weights
+    {coeffs: [2, 1, 3, 1],  // 87.5% accuracy with exponentiation-based weights
      rulesetMaker:
         // I don't think V8 is smart enough to compile this once and then sub in
         // new coeff values. I'm not sure about Spidermonkey. We may want to
@@ -51,16 +51,19 @@ trainables.set(
              * Return whether the fnode is almost but not entirely opaque.
              */
             function nearlyOpaque(fnode) {
-                // TODO: Also draw opacities from the 4th element of rgba(r, g, b, o) colors.
-                const opacityStr = getComputedStyle(fnode.element).getPropertyValue('opacity');
+                const style = getComputedStyle(fnode.element);
+                const opacity = parseFloat(style.getPropertyValue('opacity'));
+                let bgColorAlpha = rgbaFromString(style.getPropertyValue('background-color'))[3];
+                if (bgColorAlpha === undefined) {
+                    bgColorAlpha = 1;
+                }
+                const totalOpacity = opacity * bgColorAlpha;
                 let ret;
-                if (opacityStr == '1') {
+                if (totalOpacity === 1) {  // seems to work even though a float
                     ret = ZEROISH;
                 } else {
-                    const opacity = parseFloat(opacityStr);
-                    ret = trapezoid(opacity, .4, .6);
+                    ret = trapezoid(totalOpacity, .4, .6);
                 }
-                //console.log("nearly opaque", ret ** coeffNearlyOpaque);
                 return ret ** coeffNearlyOpaque;
             }
 
@@ -68,9 +71,8 @@ trainables.set(
              * Return whether the fnode's bgcolor is nearly black or white.
              */
             function monochrome(fnode) {
-                const rgb = 
-            rgbFromString(getComputedStyle(fnode.element).getPropertyValue('background-color'));
-                return trapezoid(1 - saturation(...rgb), .96, 1) ** coeffMonochrome;
+                const rgba = rgbaFromString(getComputedStyle(fnode.element).getPropertyValue('background-color'));
+                return trapezoid(1 - saturation(...rgba), .96, 1) ** coeffMonochrome;
             }
 
             function suspiciousClassOrId(fnode) {
@@ -103,15 +105,15 @@ trainables.set(
             /* Utility procedures */
 
             /**
-             * Return the extracted [r, g, b] values from a string like "rgb(0, 5, 255)",
-             * and scale them to 0..1.
+             * Return the extracted [r, g, b, a] values from a string like "rgba(0, 5, 255, 0.8)",
+             * and scale them to 0..1. If no alpha is specified, return undefined for it.
              */
-            function rgbFromString(str) {
+            function rgbaFromString(str) {
                 const m = str.match(/^rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*(\d+(?:\.\d+)?)\s*)?\)$/i);
                 if (m) {
-                    return [m[1] / 255, m[2] / 255, m[3] / 255];
+                    return [m[1] / 255, m[2] / 255, m[3] / 255, m[4] === undefined ? undefined : parseFloat(m[4])];
                 } else {
-                    throw new Error("Color " + str + " did not match patterns rgb(r, g, b) or rgba(r, g, b, a).");
+                    throw new Error("Color " + str + " did not match pattern rgb[a](r, g, b[, a]).");
                 }
             }
 
