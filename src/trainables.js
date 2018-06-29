@@ -1,4 +1,5 @@
 import {ruleset, rule, dom, type, score, out} from 'fathom-web';
+import {ancestors} from 'fathom-web/utilsForFrontend';
 
 
 /**
@@ -9,14 +10,14 @@ const trainables = new Map();
 
 trainables.set(
     'overlay',
-    {coeffs: [2, 1, 3, 1],  // 87.5% accuracy with exponentiation-based weights
+    {coeffs: [2, 1, 3, 1, 1],  // 93.8% accuracy with exponentiation-based weights
      rulesetMaker:
         // I don't think V8 is smart enough to compile this once and then sub in
         // new coeff values. I'm not sure about Spidermonkey. We may want to
         // optimize by rolling it into a class and storing coeffs explicitly in an
         // instance var. [Nope, Spidermonkey does it as efficiently as one could
         // hope, with just a {code, pointer to closure scope} pair.]
-        function ([coeffBig, coeffNearlyOpaque, coeffMonochrome, coeffClassOrId]) {
+        function ([coeffBig, coeffNearlyOpaque, coeffMonochrome, coeffClassOrId, coeffVisible]) {
             /**
              * We avoid returning full 0 from any rule, because that wipes out the tuner's
              * ability to adjust its impact by raising it to a power. .08 is big enough
@@ -102,6 +103,31 @@ trainables.set(
                 return (-((.3 + ZEROISH) ** (numOccurences + .1685)) + ONEISH) ** coeffClassOrId;
             }
 
+            /**
+             * Score hidden things real low.
+             *
+             * For training, this avoids false failures (and thus gives us more
+             * accurate accuracy numbers) since some pages have multiple
+             * popups, all but one of which are hidden in our captures.
+             * However, for actual use, consider dropping this rule, since
+             * deleting popups before they pop up may not be a bad thing.
+             */
+            function visible(fnode) {
+                const element = fnode.element;
+                for (const ancestor of ancestors(element)) {
+                    const style = getComputedStyle(ancestor);
+                    if (style.getPropertyValue('visibility') === 'hidden' ||
+                        style.getPropertyValue('display') === 'none') {
+                        return ZEROISH ** coeffVisible;
+                    }
+                    // Could add opacity and size checks here, but the
+                    // "nearlyOpaque" and "big" rules already deal with opacity
+                    // and size. If they don't do their jobs, maybe repeat
+                    // their work here (so it gets a different coefficient).
+                }
+                return ONEISH ** coeffVisible;
+            }
+
             /* Utility procedures */
 
             /**
@@ -171,6 +197,7 @@ trainables.set(
                 rule(type('overlay'), score(nearlyOpaque)),
                 rule(type('overlay'), score(monochrome)),
                 rule(type('overlay'), score(suspiciousClassOrId)),
+                rule(type('overlay'), score(visible)),
                 rule(type('overlay').max(), out('overlay'))
             );
             return rules;
