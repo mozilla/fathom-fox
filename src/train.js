@@ -11,14 +11,6 @@ async function asyncSetDefault(map, key, asyncDefaultMaker) {
     return defaultValue;
 }
 
-/**
- * Given a URL as a string, return the last segment, minus any ".html"
- * extension.
- */
-function urlFilename(url) {
-    return url.substring(url.lastIndexOf('/') + 1, url.endsWith('.html') ? url.length - 5 : url.length)
-}
-
 class Tuner {
     constructor(tabs, trainableId, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
         this.INITIAL_TEMPERATURE = initialTemperature;
@@ -120,6 +112,9 @@ class Tuner {
 
     /** Nudge a random coefficient in a random direction. */
     randomTransition(coeffs) {
+        // It finds the optima really fast. It makes me want to try giving this
+        // a larger space to work in, perhaps with non-integral values.
+
         // We don't nudge by a percentage of the current value because then we
         // never have any cache hits. Witness: x' := x + x*0.5. x' - x'*0.5 != x.
         const ret = coeffs.slice();

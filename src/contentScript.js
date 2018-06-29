@@ -71,6 +71,9 @@ async function dispatch(request) {
                 if (fnode.element.getAttribute('data-fathom') === request.trainableId) {
                     return true;
                 }
+                //console.log(urlFilename(window.location.href), ": found wrong answer class=", fnode.element.getAttribute('class'), 'id=', fnode.element.getAttribute('id'));
+            } else {
+                //console.log(urlFilename(window.location.href), ": found nothing.");
             }
             return false;
             break;  // belt, suspenders

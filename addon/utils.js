@@ -81,3 +81,11 @@ async function setViewportSize(tab, width, height) {
         {width: windowSizes.outerWidth - windowSizes.innerWidth + width,
          height: windowSizes.outerHeight - windowSizes.innerHeight + height});
 }
+
+/**
+ * Given a URL as a string, return the last segment, minus any ".html"
+ * extension.
+ */
+function urlFilename(url) {
+    return url.substring(url.lastIndexOf('/') + 1, url.endsWith('.html') ? url.length - 5 : url.length)
+}
