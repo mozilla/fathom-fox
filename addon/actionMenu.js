@@ -1,7 +1,7 @@
-document.getElementById('collectCorpus').addEventListener('click', () => browser.windows.create({url: '/pages/corpus.html'}));
-document.getElementById('train').addEventListener(
-    'click',
-    function openTrainingTab() {
-        browser.tabs.create({url: '/pages/train.html', active: true});
-        window.close();
-    });
+function openTab(url) {
+    browser.tabs.create({url, active: true});
+    window.close();
+}
+
+document.getElementById('collectCorpus').addEventListener('click', () => openTab('/pages/corpus.html'));
+document.getElementById('train').addEventListener('click', () => openTab('/pages/train.html'));
