@@ -23,7 +23,7 @@ async function freezeAllPages() {
     if (lines[0].includes(' ') || lines[0].includes('\t')) {
         // We have explicit filename prepended to the lines, space-delimited.
         namesAndUrls = lines.map(function splitAndSuffix(l) {
-            let [name, url] = l.split(/[ \t]/, 2);
+            let [name, url] = l.split(/[ \t]+/, 2);
             return [name + '.html', url];
         });
     } else {
