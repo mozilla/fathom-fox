@@ -69,10 +69,10 @@ async function tabCompletion(tab) {
                         // and installation of the update listener.
                         resolve(tab);
                     } else {
-                        reject(new Error('Tab never reached the "complete" state, just ' + tab.status + ' on ' + tab.url));
+                        reject(new Error('Loading the page timed out. (It never reached the "complete" state, just ' + tab.status + ' on ' + tab.url + ').'));
                     }
                 },
-                5000);
+                5 * 60 * 1000);  // Some pages take more than a minute to settle.
             function onUpdated(tabId, changeInfo, updatedTab) {
                 // Must use updatedTab below; using just `tab` seems to remain
                 // stuck to about:blank.
