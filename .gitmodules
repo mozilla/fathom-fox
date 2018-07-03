@@ -1,0 +1,4 @@
+[submodule "fathom"]
+	path = fathom
+	url = git@github.com:mozilla/fathom.git
+	branch = es6-exports
