@@ -81,7 +81,7 @@ trainables.set(
                 const attributeNames = ['class', 'id'];
                 let numOccurences = 0;
                 function numberOfSuspiciousSubstrings(value) {
-                    return value.includes('popup') + value.includes('modal') + value.includes('overlay') + value.includes('underlay') + value.includes('backdrop')
+                    return value.includes('popup') + value.includes('modal') + value.includes('overlay') + value.includes('underlay') + value.includes('backdrop');
                 }
 
                 for (const name of attributeNames) {
