@@ -1,5 +1,4 @@
 /node_modules
 /addon/contentScript.js
 /addon/web-ext-artifacts
-/addon/trainables.js
 /addon/train.js

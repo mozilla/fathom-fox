@@ -27,7 +27,7 @@ class Tuner {
     // What color is your function?
     async anneal(updateProgress) {
         let temperature = this.INITIAL_TEMPERATURE;
-        let currentSolution = this.initialSolution();
+        let currentSolution = await this.initialSolution();
         let bestSolution = currentSolution;
         let currentCost = await this.solutionCost(currentSolution);
         let bestCost = currentCost;
@@ -90,14 +90,16 @@ class Tuner {
     /**
      * Send a message to all the pages in the corpus, telling them "Run ruleset
      * ID X, and tell me whether its default query (the one with the same out()
-     * key as its ID) was right or wrong."
+     * key as its ID) was right or wrong." Do it by delegating to the FathomFox
+     * Rulesets webext, where user rulesets are developed.
      */
     async whetherTabsSucceeded(coeffs) {
-        return await Promise.all(this.tabs.map(
-            tab => browser.tabs.sendMessage(tab.id,
-                                            {type: 'rulesetSucceeded',
-                                             trainableId: this.trainableId,
-                                             coeffs})));
+        return await browser.runtime.sendMessage(
+            'fathomfoxrulesets@mozilla.com',
+            {type: 'rulesetSucceededOnTabs',
+             tabIds: this.tabs.map(tab => tab.id),
+             trainableId: this.trainableId,
+             coeffs});
     }
 
     async solutionCost(coeffs) {
@@ -127,8 +129,11 @@ class Tuner {
         return ret;
     }
 
-    initialSolution() {
-        return trainables.get(this.trainableId).coeffs;
+    async initialSolution() {
+        return await browser.runtime.sendMessage(
+            'fathomfoxrulesets@mozilla.com',
+            {type: 'trainableCoeffs',
+             trainableId: this.trainableId});
     }
 }
 
@@ -187,16 +192,19 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
 /**
  * Draw and outfit the Train page.
  */
-function initPage(document, trainables) {
+async function initPage(document) {
     document.getElementById('train').onclick = trainOnTabs;
 
     // Ruleset menu:
+    const trainableKeys = await browser.runtime.sendMessage(
+        'fathomfoxrulesets@mozilla.com',
+        {type: 'trainableKeys'});
     const menu = document.getElementById('ruleset');
-    for (const trainableKey of trainables.keys()) {
+    for (const trainableKey of trainableKeys) {
         const option = document.createElement('option');
         option.text = option.value = trainableKey;
         menu.add(option);
     }
 }
 
-initPage(document, trainables);
+initPage(document);
