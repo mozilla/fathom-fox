@@ -12,7 +12,7 @@ async function asyncSetDefault(map, key, asyncDefaultMaker) {
 }
 
 class Tuner {
-    constructor(tabs, trainableId, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
+    constructor(tabs, traineeId, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
         this.INITIAL_TEMPERATURE = initialTemperature;
         this.COOLING_STEPS = coolingSteps;
         this.COOLING_FRACTION = coolingFraction;
@@ -20,7 +20,7 @@ class Tuner {
         this.BOLTZMANNS = 1.3806485279e-23;
 
         this.tabs = tabs;
-        this.trainableId = trainableId;
+        this.traineeId = traineeId;
     }
 
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
@@ -98,7 +98,7 @@ class Tuner {
             'fathomfoxrulesets@mozilla.com',
             {type: 'rulesetSucceededOnTabs',
              tabIds: this.tabs.map(tab => tab.id),
-             trainableId: this.trainableId,
+             traineeId: this.traineeId,
              coeffs});
     }
 
@@ -132,8 +132,8 @@ class Tuner {
     async initialSolution() {
         return await browser.runtime.sendMessage(
             'fathomfoxrulesets@mozilla.com',
-            {type: 'trainableCoeffs',
-             trainableId: this.trainableId});
+            {type: 'traineeCoeffs',
+             traineeId: this.traineeId});
     }
 }
 
@@ -196,13 +196,13 @@ async function initPage(document) {
     document.getElementById('train').onclick = trainOnTabs;
 
     // Ruleset menu:
-    const trainableKeys = await browser.runtime.sendMessage(
+    const traineeKeys = await browser.runtime.sendMessage(
         'fathomfoxrulesets@mozilla.com',
-        {type: 'trainableKeys'});
+        {type: 'traineeKeys'});
     const menu = document.getElementById('ruleset');
-    for (const trainableKey of trainableKeys) {
+    for (const traineeKey of traineeKeys) {
         const option = document.createElement('option');
-        option.text = option.value = trainableKey;
+        option.text = option.value = traineeKey;
         menu.add(option);
     }
 }
