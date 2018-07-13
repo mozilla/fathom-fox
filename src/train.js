@@ -95,7 +95,7 @@ class Tuner {
      */
     async whetherTabsSucceeded(coeffs) {
         return await browser.runtime.sendMessage(
-            'fathomfoxrulesets@mozilla.com',
+            'fathomtrainees@mozilla.com',
             {type: 'rulesetSucceededOnTabs',
              tabIds: this.tabs.map(tab => tab.id),
              traineeId: this.traineeId,
@@ -131,7 +131,7 @@ class Tuner {
 
     async initialSolution() {
         return await browser.runtime.sendMessage(
-            'fathomfoxrulesets@mozilla.com',
+            'fathomtrainees@mozilla.com',
             {type: 'traineeCoeffs',
              traineeId: this.traineeId});
     }
@@ -197,7 +197,7 @@ async function initPage(document) {
 
     // Ruleset menu:
     const traineeKeys = await browser.runtime.sendMessage(
-        'fathomfoxrulesets@mozilla.com',
+        'fathomtrainees@mozilla.com',
         {type: 'traineeKeys'});
     const menu = document.getElementById('ruleset');
     for (const traineeKey of traineeKeys) {
