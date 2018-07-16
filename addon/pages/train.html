@@ -9,6 +9,12 @@
         padding: 12px;
       }
 
+      /* Don't let the button appear to click when disabled. */
+      button:disabled, button:disabled:hover#train {
+        border: none;
+        background-color: rgba(0, 0, 0, .06);
+      }
+
       .uiGrid {
           display: grid;
           grid-template-columns: 10em 30em;
@@ -34,8 +40,18 @@
         display: none;
       }
 
+      .hidden {
+        display: none;
+      }
+
       p.diminuitive {
         font-size: small;
+      }
+
+      p.warning {
+        background-color: #FFFFBE;
+        border: 1px solid #FFE446;
+        padding: 1em;
       }
 
       #goodBad {
@@ -60,11 +76,14 @@
   </head>
   <body class="browser-style" style="padding: 0 20px">
     <h1>Train</h1>
+    <p id="please-install" class="warning hidden">
+      Please install a web extension carrying your rulesets. For an example, see <a href="https://github.com/mozilla/fathom-trainees">Fathom Trainees</a>.
+    </p>
     <p>
-      Optimize your ruleset's the weighting coefficients based on the labeled pages in this window.
+      Optimize your ruleset's weighting coefficients based on the samples you've loaded as tabs in this window.
     </p>
     <p class="diminuitive">
-      Will automatically set a standardized window size for consistent behavior of text wrap, media queries, and so on. Training is stochastic, so different runs may reach different results.
+      This will automatically set a standardized window size for consistent sizing of elements. Training is stochastic, so different runs may reach different results.
     </p>
     <div class="uiGrid">
       <div class="label">
