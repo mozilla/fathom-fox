@@ -9,6 +9,9 @@
     <p>
       This “freezes” a series of pages for use as a training corpus. External resources like images and CSS are inlined to create a convenient single-file package for each page. Scripts are removed or deactivated, and external network resources that can't be inlined are blocked. The downloaded pages land in your usual downloads folder.
     </p>
+    <p>
+      Optionally, you may prefix each line with a filename to save the page to, followed by whitespace.
+    </p>
     <label for="pages">Enter the pages to download, one per line:</label>
     <textarea id="pages" placeholder="https://example.com/
 https://another.com/page" rows=10 class="browser-style"></textarea>
@@ -21,6 +24,7 @@ https://another.com/page" rows=10 class="browser-style"></textarea>
     </div>
     <div id="errors" style="color: red; margin-top: 1em"></div>
     <script src="../download.js"></script>
+    <script src="../utils.js"></script>
     <script src="../corpus.js"></script>
   </body>
 </html>

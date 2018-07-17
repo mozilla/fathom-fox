@@ -9,7 +9,8 @@
     },
     "browser_action": {
         "default_icon": "icons/icon.svg",
-        "default_title": "Corpus Collector",
+        "default_title": "FathomFox",
+        "default_popup": "pages/actionMenu.html",
         "browser_style": true
     },
     "background": {

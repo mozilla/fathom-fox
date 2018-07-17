@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
+    <style type="text/css">
+      /* Otherwise, the button changes shape when it's disabled. */
+      button {
+        padding: 12px;
+      }
+
+      /* Don't let the button appear to click when disabled. */
+      button:disabled, button:disabled:hover#train {
+        border: none;
+        background-color: rgba(0, 0, 0, .06);
+      }
+
+      .uiGrid {
+          display: grid;
+          grid-template-columns: 10em 30em;
+          grid-gap: 6px;
+      }
+
+      .uiGrid .label,
+      .uiGrid p {
+        text-align: right;
+      }
+
+      .uiGrid select,
+      .uiGrid button,
+      .uiGrid meter {
+        width: 100%;
+      }
+
+      .uiGrid div.bottommost {
+        padding-bottom: 2em;
+      }
+
+      .output {
+        display: none;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      p.diminuitive {
+        font-size: small;
+      }
+
+      p.warning {
+        background-color: #FFFFBE;
+        border: 1px solid #FFE446;
+        padding: 1em;
+      }
+
+      #goodBad {
+        display: grid;
+        grid-gap: 2px;
+        grid-template-columns: repeat(8, 1fr);
+      }
+
+      #goodBad>div {
+        text-align: center;
+        padding: 3px;
+      }
+
+      #goodBad>.good {
+        background-color: rgb(173, 245, 175);
+      }
+
+      #goodBad>.bad {
+        background-color: rgb(255, 174, 186);
+      }
+    </style>
+  </head>
+  <body class="browser-style" style="padding: 0 20px">
+    <h1>Train</h1>
+    <p id="please-install" class="warning hidden">
+      No rulesets found. Please install a “trainee” web extension containing your rulesets. For an example, see <a href="https://github.com/mozilla/fathom-trainees">Fathom Trainees</a>.
+    </p>
+    <p>
+      Optimize your ruleset's weighting coefficients based on the samples you've loaded as tabs in this window.
+    </p>
+    <p class="diminuitive">
+      This will automatically set a standardized window size for consistent sizing of elements. Training is stochastic, so different runs may reach different results.
+    </p>
+    <div class="uiGrid">
+      <div class="label">
+        <label for="ruleset">Ruleset:</label>
+      </div>
+      <div>
+        <select id="ruleset"></select>
+      </div>
+      <div>
+      </div>
+      <div>
+        <button type="button" id="train" class="panel-section-footer-button">Train on the tabs in this window</button>
+      </div>
+      <div>
+      </div>
+      <div class="bottommost">
+        <meter id="progress" style="display: none"></meter>
+      </div>
+      <div class="output label">
+        Coefficients:
+      </div>
+      <div id="coeffs"></div>
+      <div class="output label">
+        Accuracy:
+      </div>
+      <div id="accuracy"></div>
+      <div class="output label">
+        Good/Bad:
+      </div>
+      <div id="goodBad"></div>
+    </div>
+    <script src="../utils.js"></script>
+    <script src="../train.js"></script>
+  </body>
+</html>
