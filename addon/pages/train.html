@@ -33,7 +33,7 @@
       }
 
       .uiGrid div.bottommost {
-        padding-bottom: 2em;
+        margin-bottom: 2em;
       }
 
       .output {
@@ -44,8 +44,10 @@
         display: none;
       }
 
-      p.diminuitive {
-        font-size: small;
+      #caveats {
+        color: #666;
+        font-size: 9pt;
+        text-align: left;
       }
 
       p.warning {
@@ -82,9 +84,6 @@
     <p>
       Optimize your ruleset's weighting coefficients based on the samples you've loaded as tabs in this window.
     </p>
-    <p class="diminuitive">
-      This will automatically set a standardized window size for consistent sizing of elements. Training is stochastic, so different runs may reach different results.
-    </p>
     <div class="uiGrid">
       <div class="label">
         <label for="ruleset">Ruleset:</label>
@@ -99,8 +98,13 @@
       </div>
       <div>
       </div>
-      <div class="bottommost">
+      <div>
         <meter id="progress" style="display: none"></meter>
+      </div>
+      <div>
+      </div>
+      <div id="caveats" class="bottommost">
+        Standardized window size will be used for consistent sizing of elements. Training is stochastic, so different runs may reach different results.
       </div>
       <div class="output label">
         Coefficients:
