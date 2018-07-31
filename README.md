@@ -39,6 +39,10 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 1.1.1
+
+* Fix a bug where the Save button on the devtools panel wouldn't do anything unless an element was inspected.
+
 ### 1.1
 
 * Add Trainer.
