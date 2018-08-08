@@ -1,3 +1,5 @@
+let g_progressBar, g_coeffs_div, g_accuracy_div, g_goodBadDiv;
+
 /**
  * Awaitable setDefault that stores Promise values, not the Promises
  * themselves, in the map
@@ -26,6 +28,7 @@ class Tuner {
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
     // What color is your function?
     async anneal(updateProgress) {
+        console.time('Training');
         let temperature = this.INITIAL_TEMPERATURE;
         let currentSolution = await this.initialSolution();
         let bestSolution = currentSolution;
@@ -81,6 +84,7 @@ class Tuner {
             }
             temperature *= this.COOLING_FRACTION;
         }
+        console.timeEnd('Training');
         console.log('Iterations:', n, 'using', m, 'jumps.');
         console.log('Cache hits', hits, 'misses', misses);
         console.log('Cache hit rate', hits/(hits + misses));
@@ -141,50 +145,59 @@ async function trainOnTabs() {
     // Grey out Train button:
     const trainButton = document.getElementById('train');
     trainButton.disabled = true;
-    const progressBar = document.getElementById('progress');
-    progressBar.setAttribute('style', '');
 
-    // TODO: Using "active" here rather than a tab ID presents a race condition
-    // if you quickly switch away from the tab after clicking the Train button.
-    const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
-    await setViewportSize(tabs[0], 1024, 768);  // for consistent element sizing in samples due to text wrap, etc.
+    // Show progress bar and output.
+    g_progressBar.classList.remove('hidden');
+    document.getElementById('output').classList.remove('hidden');
 
-    const rulesetName = document.getElementById('ruleset').value;
-    const tuner = new Tuner(tabs, rulesetName);
-    const [tunedCoeffs, tunedCost] = await tuner.anneal(updateProgress);
+    try {
 
-    progressBar.setAttribute('style', 'display: none');
-    progressBar.setAttribute('value', 0);
-    trainButton.disabled = false;
+        // TODO: Using "active" here rather than a tab ID presents a race condition
+        // if you quickly switch away from the tab after clicking the Train button.
+        const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
+        await setViewportSize(tabs[0], 1024, 768);  // for consistent element sizing in samples due to text wrap, etc.
+
+        const rulesetName = document.getElementById('ruleset').value;
+        const tuner = new Tuner(tabs, rulesetName);
+        await tuner.anneal(updateProgress);
+
+    } finally {
+        // Restore UI state, leaving output visible.
+        g_progressBar.classList.add('hidden');
+        g_progressBar.setAttribute('value', 0);
+        trainButton.disabled = false;
+    }
 }
 
 function empty(element) {
-    while (element.firstChild) {
-        element.removeChild(element.firstChild);
+    while (element.lastChild) {
+        element.removeChild(element.lastChild);
     }
 }
 
 function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
-    document.getElementById('progress').setAttribute('value', ratio);
+    // Tick progress meter.
+    g_progressBar.setAttribute('value', ratio);
 
-    // Update best coeffs and accuracy:
-    const coeffsDiv = document.getElementById('coeffs');
-    const accuracyDiv = document.getElementById('accuracy');
-    Array.prototype.forEach.call(document.getElementsByClassName('output'),
-                                 e => e.classList.remove('output'));
-    coeffsDiv.classList.remove('output');
-    empty(coeffsDiv);
-    empty(accuracyDiv);
-    coeffsDiv.appendChild(document.createTextNode(`[${bestSolution}]`));
-    accuracyDiv.appendChild(document.createTextNode(`${((1 - bestCost) * 100).toFixed(1)}%`));
+    // Update best coeffs and accuracy.
+    g_coeffs_div.firstChild.textContent = `[${bestSolution}]`;
+    g_accuracy_div.firstChild.textContent = `${((1 - bestCost) * 100).toFixed(1)}%`;
+
     if (successesOrFailures) {
-        const goodBadDiv = document.getElementById('goodBad');
-        empty(goodBadDiv);
+        if (g_goodBadDiv.childElementCount !== successesOrFailures.length) {
+            empty(g_goodBadDiv);
+            for (let _ of successesOrFailures) {
+                let div = document.createElement('div');
+                div.appendChild(document.createTextNode(''));
+                g_goodBadDiv.append(div);
+            }
+        }
+
+        let div = g_goodBadDiv.firstElementChild;
         for (let [succeeded, name] of successesOrFailures) {
-            const newDiv = document.createElement('div');
-            newDiv.appendChild(document.createTextNode(name));
-            newDiv.setAttribute('class', succeeded ? 'good' : 'bad');
-            goodBadDiv.appendChild(newDiv);
+            div.firstChild.textContent = name;
+            div.setAttribute('class', succeeded ? 'good' : 'bad');
+            div = div.nextElementSibling;
         }
     }
 }
@@ -193,7 +206,20 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
  * Draw and outfit the Train page.
  */
 async function initPage(document) {
-    document.getElementById('train').onclick = trainOnTabs;
+    // Find elements once.
+    g_progressBar = document.getElementById('progress');
+    g_coeffs_div = document.getElementById('coeffs');
+    g_accuracy_div = document.getElementById('accuracy');
+    g_goodBadDiv = document.getElementById('goodBad');
+
+    // Initialise elements to a known state.
+    empty(g_coeffs_div);
+    empty(g_accuracy_div);
+    empty(g_goodBadDiv);
+
+    // Create a text node in coeffs and accuracy once, rather than on each update.
+    g_coeffs_div.appendChild(document.createTextNode(''));
+    g_accuracy_div.appendChild(document.createTextNode(''));
 
     // Draw Ruleset menu:
     let traineeKeys;

@@ -36,10 +36,6 @@
         margin-bottom: 2em;
       }
 
-      .output {
-        display: none;
-      }
-
       .hidden {
         display: none;
       }
@@ -99,25 +95,27 @@
       <div>
       </div>
       <div>
-        <meter id="progress" style="display: none"></meter>
+        <meter id="progress" class="hidden"></meter>
       </div>
       <div>
       </div>
       <div id="caveats" class="bottommost">
         Standardized window size will be used for consistent sizing of elements. Training is stochastic, so different runs may reach different results.
       </div>
-      <div class="output label">
-        Coefficients:
+      <div id="output" class="hidden uiGrid">
+          <div class="label">
+            Coefficients:
+          </div>
+          <div id="coeffs"></div>
+          <div class="label">
+            Accuracy:
+          </div>
+          <div id="accuracy"></div>
+          <div class="label">
+            Good/Bad:
+          </div>
+          <div id="goodBad"></div>
       </div>
-      <div id="coeffs"></div>
-      <div class="output label">
-        Accuracy:
-      </div>
-      <div id="accuracy"></div>
-      <div class="output label">
-        Good/Bad:
-      </div>
-      <div id="goodBad"></div>
     </div>
     <script src="../utils.js"></script>
     <script src="../train.js"></script>
