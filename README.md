@@ -31,11 +31,11 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Development
 
-1. Install Firefox Nightly.
+1. Install Firefox Nightly or Firefox Developer Edition.
 2. Check out the source code.
 3. `cd fathom-fox`
 4. Install dependencies: `yarn`. (`npm` seems to choose different dependencies and may not work.)
-5. Bundle up the extension, and launch a new copy of Nightly with it already installed: `yarn run build`
+5. Bundle up the extension, and launch a new copy of Firefox with it already installed: `yarn run build`
 
 ## Version History
 
