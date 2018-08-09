@@ -92,8 +92,7 @@ Thanks to Treora for his excellent freeze-dry library!
 2. Check out the source code.
 3. `cd fathom-fox`
 4. Install dependencies: `yarn`
-5. Bundle up the extension, and launch a new copy of Nightly with it already
-   installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
+5. Bundle up the extension, and launch a new copy of Nightly with it already installed: `yarn run browser`
 
 ## Version History
 
