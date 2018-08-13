@@ -36,6 +36,7 @@ async function freezeThisPage(options) {
 async function dispatch(request) {
     switch (request.type) {
         case 'label':
+            // TODO: Show a message or something if no element is inspected.
             elementAtPath(request.inspectedElement, document).setAttribute('data-fathom', request.label);
             break;
         case 'freeze':
@@ -52,7 +53,9 @@ async function dispatch(request) {
             }
             return Promise.resolve(html);
         case 'showHighlight':
-            showHighlight(elementAtPath(request.inspectedElement, document));
+            if (request.inspectedElement !== undefined) {
+                showHighlight(elementAtPath(request.inspectedElement, document));
+            }
             break;
         case 'hideHighlight':
             hideHighlight();

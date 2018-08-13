@@ -2,3 +2,4 @@
 /addon/contentScript.js
 /addon/web-ext-artifacts
 /addon/train.js
+/package-lock.json
