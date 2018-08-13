@@ -1,4 +1,4 @@
-let g_progressBar, g_coeffs_div, g_accuracy_div, g_goodBadDiv;
+let gProgressBar, gCoeffsDiv, gAccuracyDiv, gGoodBadDiv;
 
 /**
  * Awaitable setDefault that stores Promise values, not the Promises
@@ -147,7 +147,7 @@ async function trainOnTabs() {
     trainButton.disabled = true;
 
     // Show progress bar and output.
-    g_progressBar.classList.remove('hidden');
+    gProgressBar.classList.remove('hidden');
     document.getElementById('output').classList.remove('hidden');
 
     try {
@@ -163,38 +163,38 @@ async function trainOnTabs() {
 
     } finally {
         // Restore UI state, leaving output visible.
-        g_progressBar.classList.add('hidden');
-        g_progressBar.setAttribute('value', 0);
+        gProgressBar.classList.add('hidden');
+        gProgressBar.setAttribute('value', 0);
         trainButton.disabled = false;
     }
 }
 
 function empty(element) {
-    while (element.lastChild) {
-        element.removeChild(element.lastChild);
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
     }
 }
 
 function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
     // Tick progress meter.
-    g_progressBar.setAttribute('value', ratio);
+    gProgressBar.setAttribute('value', ratio);
 
     // Update best coeffs and accuracy.
-    g_coeffs_div.firstChild.textContent = `[${bestSolution}]`;
-    g_accuracy_div.firstChild.textContent = `${((1 - bestCost) * 100).toFixed(1)}%`;
+    gCoeffsDiv.firstChild.textContent = `[${bestSolution}]`;
+    gAccuracyDiv.firstChild.textContent = `${((1 - bestCost) * 100).toFixed(1)}%`;
 
     if (successesOrFailures) {
-        if (g_goodBadDiv.childElementCount !== successesOrFailures.length) {
-            empty(g_goodBadDiv);
-            for (let _ of successesOrFailures) {
-                let div = document.createElement('div');
+        if (gGoodBadDiv.childElementCount !== successesOrFailures.length) {
+            empty(gGoodBadDiv);
+            for (const _ of successesOrFailures) {
+                const div = document.createElement('div');
                 div.appendChild(document.createTextNode(''));
-                g_goodBadDiv.append(div);
+                gGoodBadDiv.appendChild(div);
             }
         }
 
-        let div = g_goodBadDiv.firstElementChild;
-        for (let [succeeded, name] of successesOrFailures) {
+        let div = gGoodBadDiv.firstElementChild;
+        for (const [succeeded, name] of successesOrFailures) {
             div.firstChild.textContent = name;
             div.setAttribute('class', succeeded ? 'good' : 'bad');
             div = div.nextElementSibling;
@@ -207,19 +207,21 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
  */
 async function initPage(document) {
     // Find elements once.
-    g_progressBar = document.getElementById('progress');
-    g_coeffs_div = document.getElementById('coeffs');
-    g_accuracy_div = document.getElementById('accuracy');
-    g_goodBadDiv = document.getElementById('goodBad');
+    gProgressBar = document.getElementById('progress');
+    gCoeffsDiv = document.getElementById('coeffs');
+    gAccuracyDiv = document.getElementById('accuracy');
+    gGoodBadDiv = document.getElementById('goodBad');
 
     // Initialise elements to a known state.
-    empty(g_coeffs_div);
-    empty(g_accuracy_div);
-    empty(g_goodBadDiv);
+    empty(gCoeffsDiv);
+    empty(gAccuracyDiv);
+    empty(gGoodBadDiv);
 
     // Create a text node in coeffs and accuracy once, rather than on each update.
-    g_coeffs_div.appendChild(document.createTextNode(''));
-    g_accuracy_div.appendChild(document.createTextNode(''));
+    gCoeffsDiv.appendChild(document.createTextNode(''));
+    gAccuracyDiv.appendChild(document.createTextNode(''));
+
+    document.getElementById('train').onclick = trainOnTabs;
 
     // Draw Ruleset menu:
     let traineeKeys;
