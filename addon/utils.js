@@ -32,7 +32,8 @@ function *reversed(array) {
 }
 
 /**
- * Return an "index path" to the element inspected by the dev tools.
+ * Return an "index path" to the element inspected by the dev tools; undefined
+ * if none is inspected.
  *
  * Callable only from devtools panels or openers.
  */
@@ -48,6 +49,9 @@ async function inspectedElementPath() {
                 throw new Error('Item was not found in collection.');
             }
 
+            if (element === undefined) {
+                return undefined;
+            }
             const path = [];
             let node = element;
             while (node.parentNode !== null) {

@@ -5,11 +5,11 @@ async function createPanel() {
         'Fathom',
         '/icons/icon.svg',
         '/pages/devtoolsPanel.html');
-    extensionPanel.onShown.addListener(panelShowed);
-    extensionPanel.onHidden.addListener(panelHid);
+    extensionPanel.onShown.addListener(panelShown);
+    extensionPanel.onHidden.addListener(panelHidden);
 }
 
-async function panelShowed(extensionPanel) {
+async function panelShown(extensionPanel) {
     // TODO: Pull data attrs into UI.
 
     backgroundPort.postMessage({type: 'showHighlight',
@@ -17,7 +17,7 @@ async function panelShowed(extensionPanel) {
                                 inspectedElement: await inspectedElementPath()});
 }
 
-function panelHid(extensionPanel) {
+function panelHidden(extensionPanel) {
     backgroundPort.postMessage({type: 'hideHighlight',
                                 tabId: browser.devtools.inspectedWindow.tabId});
 }

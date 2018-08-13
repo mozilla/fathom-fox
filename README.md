@@ -90,7 +90,7 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Development
 
-1. Install Firefox Nightly.
+1. Install Firefox Nightly or Firefox Developer Edition.
 2. Check out the source code.
 3. `cd fathom-fox`
 4. Install dependencies: `yarn` (note `npm` will not work).
@@ -98,6 +98,10 @@ Thanks to Treora for his excellent freeze-dry library!
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
 ## Version History
+
+### 1.1.1
+
+* Fix a bug where the Save button on the devtools panel wouldn't do anything unless an element was inspected.
 
 ### 1.1
 
