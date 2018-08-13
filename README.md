@@ -19,8 +19,8 @@ might use FathomFox to design a Fathom ruleset that finds pop-up overlays:
    `addon/manifest.json` file.
 5. Navigate to a web site that has a modal dialog with a background overlay.
 6. Using Firefox's developer tools inspector, select the full-page overlay element.
-7. Switch to the FATHOM developer tools tab, enter `overlay` in the label field,
-   and click SAVE.
+7. Switch to the Fathom developer tools tab, enter `overlay` in the label field,
+   and click Save.
 8. From the main toolbar select the `FathomFox` icon, then choose `Trainer`.
 9. Click `Train on the tabs in this window`.
 
@@ -93,7 +93,8 @@ Thanks to Treora for his excellent freeze-dry library!
 1. Install Firefox Nightly or Firefox Developer Edition.
 2. Check out the source code.
 3. `cd fathom-fox`
-4. Install dependencies: `yarn` (note `npm` will not work).
+4. Install dependencies: `yarn` (note `npm` will not work as it chooses different
+   dependencies).
 5. Bundle up the extension, and launch a new copy of Nightly with it already
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
