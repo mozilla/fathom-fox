@@ -194,7 +194,7 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
         }
 
         let div = gGoodBadDiv.firstElementChild;
-        for (const [succeeded, name] of successesOrFailures) {
+        for (let [succeeded, name] of successesOrFailures) {
             div.firstChild.textContent = name;
             div.setAttribute('class', succeeded ? 'good' : 'bad');
             div = div.nextElementSibling;
