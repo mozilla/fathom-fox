@@ -33,37 +33,78 @@ async function freezeThisPage(options) {
  * Top-level dispatcher for commands sent from the devpanel or corpus collector
  * to this content script
  */
-async function dispatch(request) {
+function dispatch(request) {
     switch (request.type) {
+        case 'init':
+            injectSimmer();
+            break;
+
         case 'label':
-            // TODO: Show a message or something if no element is inspected.
-            elementAtPath(request.inspectedElement, document).setAttribute('data-fathom', request.label);
+            setLabel(request);
             break;
+
         case 'freeze':
-            // Freeze a page at the bidding of the corpus collector or devtools
-            // save button. Devtools panel calls this indirectly, by way of the
-            // background script, so it can download the result when done.
-            // Corpus collector calls directly.
-            if (request.inspectedElement !== undefined) {
-                hideHighlight();
-            }
-            const html = await freezeThisPage(request.options);
-            if (request.inspectedElement !== undefined) {
-                showHighlight(elementAtPath(request.inspectedElement, document));
-            }
-            return Promise.resolve(html);
+            return freezePage(request);
+
         case 'showHighlight':
-            if (request.inspectedElement !== undefined) {
-                showHighlight(elementAtPath(request.inspectedElement, document));
-            }
+            showHighlight(request.selector);
             break;
+
         case 'hideHighlight':
             hideHighlight();
             break;
     }
-    return Promise.resolve({});
 }
 browser.runtime.onMessage.addListener(dispatch);
+
+// Inject the Simmer library into the current page, so we can use it to
+// build the CSS path to elements.  This injection only happens when the
+// dev panel is first opened.
+function injectSimmer() {
+    if (document.getElementById('fathom-simmer')) {
+        return;
+    }
+    const script = document.createElement('script');
+    script.setAttribute('id', 'fathom-simmer');
+    script.setAttribute('src', browser.extension.getURL('simmer.js'));
+    const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+    head.insertBefore(script, head.lastChild);
+}
+
+// Set or clear the label on the element specifed by request.selector.
+function setLabel(request) {
+    // Find target element.
+    const inspectedElement = document.querySelector(request.selector);
+    if (!inspectedElement) {
+        console.error('failed to find element', request.selector);
+        return;
+    }
+
+    // Update or delete data-fathom attribute.
+    if (request.label !== undefined && request.label !== '') {
+        inspectedElement.dataset.fathom = request.label;
+    } else {
+        delete inspectedElement.dataset.fathom;
+    }
+
+    // Refresh the devtools panel UI.
+    browser.runtime.sendMessage({type: 'refresh'});
+}
+
+// Freeze a page at the bidding of the corpus collector or devtools
+// save button. Devtools panel calls this indirectly, by way of the
+// background script, so it can download the result when done.
+// Corpus collector calls directly.
+function freezePage(request) {
+    hideHighlight();
+    return freezeThisPage(request.options)
+        .then((html) => {
+            if (request.selector) {
+                showHighlight(request.selector);
+            }
+            return html;
+        });
+}
 
 /**
  * Add a highlighter div over the given element.
@@ -71,13 +112,21 @@ browser.runtime.onMessage.addListener(dispatch);
  * Firefox otherwise does nothing to make clear that the inspector's selection
  * is even preserved when a different devpanel is forward.
  */
-function showHighlight(element) {
+function showHighlight(selector) {
     hideHighlight();
+
+    const element = document.querySelector(selector);
+    if (!element) {
+        console.error('failed to find element for', selector);
+        return;
+    }
+
     const highlighter = document.createElement('div');
     highlighter.id = 'fathomHighlighter';
     highlighter.style.backgroundColor = '#92DDF4';
     highlighter.style.opacity = '.70';
     highlighter.style.position = 'absolute';
+    highlighter.style.zIndex = '99999';
     const rect = element.getBoundingClientRect();
     highlighter.style.width = rect.width + 'px';
     highlighter.style.height = rect.height + 'px';
@@ -86,7 +135,7 @@ function showHighlight(element) {
     highlighter.style.padding = '0';
     highlighter.style.margin = '0';
     highlighter.style['border-radius'] = '0';
-    document.getElementsByTagName('html')[0].appendChild(highlighter);
+    document.documentElement.appendChild(highlighter);
 }
 
 /**

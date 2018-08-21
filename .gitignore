@@ -2,4 +2,5 @@
 /addon/contentScript.js
 /addon/web-ext-artifacts
 /addon/train.js
+/addon/simmer.js
 /package-lock.json

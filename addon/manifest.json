@@ -18,8 +18,11 @@
     },
     "content_scripts": [{
         "matches": ["<all_urls>"],
-        "js": ["utils.js", "contentScript.js"]
+        "js": ["utils.js", "contentScript.js", "simmer.js"]
     }],
+    "web_accessible_resources": [
+        "simmer.js"
+    ],
     "permissions": [
         "<all_urls>",
         "downloads",

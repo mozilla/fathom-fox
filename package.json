@@ -17,6 +17,8 @@
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.2.1",
     "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-copy": "^0.2.3",
+    "simmerjs": "^0.5.6",
     "web-ext": "^1.7.0"
   }
 }

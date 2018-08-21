@@ -44,10 +44,14 @@ you do the supervision (labeling) of pages that have been bulk-collected. You
 can also use it as an alternative to bulk collection that lets you interact
 with each page before freezing.
 
-Load a page, visit the panel, and apply as many labels as you want to various
-page elements (a max of one label per element at the moment). When you're done,
-click Save to pull down a frozen version of the page. That sample is then ready
-to be used with the Trainer.
+Load a page, right click on the element you want to label and choose Inspect
+Element, which will open Firefox's developer tools. Switch to the Fathom tab
+and enter the label for the inspected element.
+
+You can apply as many labels as you want to various page elements, with a max
+of one label per element at the moment. When you're done, click Save Page to
+pull down a frozen version of the page. That sample is then ready to be used
+with the Trainer.
 
 ## The Trainer
 

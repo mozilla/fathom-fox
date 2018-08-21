@@ -1,25 +1,36 @@
 let backgroundPort = browser.runtime.connect();
 
-async function createPanel() {
-    const extensionPanel = await browser.devtools.panels.create(
+function createPanel() {
+    browser.devtools.panels.create(
         'Fathom',
         '/icons/icon.svg',
-        '/pages/devtoolsPanel.html');
-    extensionPanel.onShown.addListener(panelShown);
-    extensionPanel.onHidden.addListener(panelHidden);
+        '/pages/devtoolsPanel.html'
+    ).then((extensionPanel) => {
+        extensionPanel.onShown.addListener(panelShown);
+        extensionPanel.onHidden.addListener(panelHidden);
+    });
 }
 
-async function panelShown(extensionPanel) {
-    // TODO: Pull data attrs into UI.
-
-    backgroundPort.postMessage({type: 'showHighlight',
-                                tabId: browser.devtools.inspectedWindow.tabId,
-                                inspectedElement: await inspectedElementPath()});
+function panelShown() {
+    inspectedElementSelector()
+        .then((selector) => {
+            backgroundPort.postMessage({
+                type: 'showHighlight',
+                tabId: browser.devtools.inspectedWindow.tabId,
+                selector: selector,
+            });
+            browser.runtime.sendMessage({type: 'refresh'});
+        })
+        .catch((error) => {
+            console.error(error);
+        });
 }
 
-function panelHidden(extensionPanel) {
-    backgroundPort.postMessage({type: 'hideHighlight',
-                                tabId: browser.devtools.inspectedWindow.tabId});
+function panelHidden() {
+    backgroundPort.postMessage({
+        type: 'hideHighlight',
+        tabId: browser.devtools.inspectedWindow.tabId,
+    });
 }
 
 createPanel();

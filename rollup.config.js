@@ -3,6 +3,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import json from 'rollup-plugin-json';
 import builtins from 'rollup-plugin-node-builtins';
 import globals from 'rollup-plugin-node-globals';
+import copy from 'rollup-plugin-copy';
 
 /**
  * Return typical rollup settings for a file of a given name.
@@ -24,7 +25,10 @@ function mindlesslyFactoredOutSettings(name) {
             }),
             json(),
             globals(),
-            builtins()
+            builtins(),
+            copy({
+                'node_modules/simmerjs/dist/simmer.js': 'addon/simmer.js',
+            }),
         ]
     }
 }
