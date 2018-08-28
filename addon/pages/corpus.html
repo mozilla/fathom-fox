@@ -3,8 +3,26 @@
   <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
+    <style>
+      body {
+        padding: 0 20px;
+      }
+      #options {
+        float: right;
+        padding-right: 10px;
+      }
+      #options div {
+        text-align: right;
+      }
+      #options input[type="text"] {
+        text-align: right;
+      }
+      #status li.error {
+        color: darkred;
+      }
+    </style>
   </head>
-  <body class="browser-style" style="padding: 0 20px">
+  <body class="browser-style">
     <h1>Corpus Collector</h1>
     <p>
       This “freezes” a series of pages for use as a training corpus. External resources like images and CSS are inlined to create a convenient single-file package for each page. Scripts are removed or deactivated, and external network resources that can't be inlined are blocked. The downloaded pages land in your usual downloads folder.
@@ -15,14 +33,24 @@
     <label for="pages">Enter the pages to download, one per line:</label>
     <textarea id="pages" placeholder="https://example.com/
 https://another.com/page" rows=10 class="browser-style"></textarea>
-    <div>
-      <button type="button" id="freeze" class="panel-section-footer-button">Download</button>
-      <div style="float: right">
-        <label><input type="checkbox" id="shouldScroll"> Scroll to bottom of page.</label><br>
-        Wait <input type="text" minlength="0" size="2" value="0" id="wait"> seconds before freezing page.
+    <form id="freezeForm">
+      <button id="freeze">Download</button>
+      <div id="options">
+        <div>
+          <label for="shouldScroll" title="Scroll to the bottom of the page before freezing.">Scroll to bottom</label>
+          <input type="checkbox" id="shouldScroll">
+        </div>
+        <div>
+          <label for="wait" title="Wait this long before freezing the page.">Freeze Delay</label>
+          <input type="text" required pattern="[0-9]+" min="0" size="2" id="wait" value="0"> sec
+        </div>
+        <div>
+          <label for="timeout" title="Give up if page load and freeze takes longer than this.">Timeout</label>
+          <input type="text" required pattern="[0-9]+" size="2" id="timeout" value="60"> sec
+        </div>
       </div>
-    </div>
-    <div id="errors" style="color: red; margin-top: 1em"></div>
+    </form>
+    <ul id="status"></ul>
     <script src="../download.js"></script>
     <script src="../utils.js"></script>
     <script src="../corpus.js"></script>
