@@ -11,8 +11,10 @@ that finds the semi-transparent overlays behind in-page pop-ups:
 1. Fork, clone, and install the
    [Fathon-Trainees](https://github.com/mozilla/fathom-trainees/) repository as
    per its instructions.
-2. Install dependencies with `yarn deps`, build with `yarn build`, then run
-   `yarn browser` to launch Firefox.
+2. Install dependencies and build with `yarn build`, then run `yarn browser` to
+   launch Firefox.  `yarn install` (or just `yarn`) will fail with an error
+   about an incompatible node version, use `yarn build` to install modules, or
+   pass the `--ignore-engines` switch to `yarn install`.
 3. Using `about:debugging`, install your fathom-trainess extension by selecting
    its `addon/manifest.json` file.
 4. Install [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/).
@@ -101,8 +103,8 @@ Thanks to Treora for his excellent freeze-dry library!
 1. Install Firefox Nightly or Firefox Developer Edition.
 2. Check out the source code.
 3. `cd fathom-fox`
-4. Install dependencies: `yarn` (note `npm` will not work as it chooses
-   different dependencies).
+4. Install dependencies: `yarn install --ignore-engines` (note `npm` will not
+   work as it chooses different dependencies).
 5. Bundle up the extension, and launch a new copy of Nightly with it already
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
