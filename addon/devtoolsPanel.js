@@ -39,7 +39,6 @@ browser.runtime.onMessage.addListener((request) => {
             tabId: browser.devtools.inspectedWindow.tabId,
         });
         updateLabeled();
-
     } else if (request.type === 'refresh') {
         resetFreeze();
         browser.runtime.sendMessage({type: 'init'})
@@ -89,7 +88,8 @@ function getLabeled() {
     return resultOfEval(evalScript);
 }
 
-// Draw the table with the list of existing labeled elements.
+// Draw the table with the list of existing labeled elements (as generated
+// by `getLabeled()`.
 // If an element is inspected/selected with devtools (i.e. $0 is defined), it
 // will always be the first row in the table.
 function updateLabeledTable(labeled) {
@@ -103,7 +103,8 @@ function updateLabeledTable(labeled) {
 
     function inspectLabeled(event) {
         event.preventDefault();
-        const js = 'inspect(document.querySelector("' + event.target.dataset.path + '"))';
+        const escapedPath = event.target.dataset.path.replace(/"/g, '\\"');
+        const js = 'inspect(document.querySelector("' + escapedPath + '"))';
         browser.devtools.inspectedWindow.eval(js)
             .catch((e) => {
                 console.error(e);
@@ -165,9 +166,9 @@ function updateLabeledTable(labeled) {
         a.classList.add('action-button');
         a.dataset.path = label.path;
         a.dataset.label = label.label;
-        a.setAttribute('title', label.inspected ? 'Clear Label' : 'Remove Label');
+        a.setAttribute('title', 'Remove Label');
         a.addEventListener('click', removeLabeled);
-        a.appendChild(document.createTextNode(label.inspected ? '⦸' : '✖'));
+        a.appendChild(document.createTextNode('✖'));
         td.appendChild(a);
         row.appendChild(td);
     }
@@ -187,7 +188,9 @@ function updateLabeledTable(labeled) {
         addPathCell(row, label);
         addTextCell(row, label.preview).classList.add('preview');
         addLabelCell(row, label);
-        addClearLabelCell(row, label);
+        if (!label.inspected) {
+            addClearLabelCell(row, label);
+        }
 
         table.appendChild(row);
     }

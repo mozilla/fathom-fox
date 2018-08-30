@@ -71,6 +71,13 @@ function injectSimmer() {
     head.insertBefore(script, head.lastChild);
 }
 
+function removeSimmer() {
+    const simmerElement = document.getElementById('fathom-simmer');
+    if (simmerElement) {
+        simmerElement.parentNode.removeChild(simmerElement);
+    }
+}
+
 // Set or clear the label on the element specifed by request.selector.
 function setLabel(request) {
     // Find target element.
@@ -96,7 +103,13 @@ function setLabel(request) {
 // background script, so it can download the result when done.
 // Corpus collector calls directly.
 function freezePage(request) {
+    // Remove the simmer <script> element.  This doesn't need to be put back
+    // as the `Simmer` object will exist and won't need to be recreated.
+    removeSimmer();
+
+    // Remove the highlight/overlay.  This will need to be restored.
     hideHighlight();
+
     return freezeThisPage(request.options)
         .then((html) => {
             if (request.selector) {

@@ -11,6 +11,15 @@ async function resultOfEval(codeString) {
 }
 
 /**
+ * Return a backward iterator over an Array.
+ */
+function *reversed(array) {
+    for (let i = array.length - 1; i >= 0; i--) {
+        yield array[i];
+    }
+}
+
+/**
  * Deletes all children of the specified element.
  */
 function emptyElement(element) {
