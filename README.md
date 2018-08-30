@@ -41,15 +41,16 @@ freezing).
 
 Fathom is a supervised-learning system. FathomFox's Developer Tools panel helps
 you do the supervision (labeling) of pages that have been bulk-collected. You
-can also use it as an alternative to bulk collection that lets you interact
-with each page before freezing.
+can also label pages one at a time, without first saving them locally. This
+lets you interact with each page before freezing, ensuring the interesting
+elements are showing.
 
-Load a page, right click on the element you want to label and choose Inspect
-Element, which will open Firefox's developer tools. Switch to the Fathom tab
+Load a page, right-click the element you want to label, and choose Inspect
+Element, which will open Firefox's developer tools. Switch to the Fathom tab,
 and enter the label for the inspected element.
 
-You can apply as many labels as you want to various page elements, with a max
-of one label per element at the moment. When you're done, click Save Page to
+You can apply as many labels as you want to various page elements, though there
+is a limit of one label per element at the moment. Finally, click Save Page to
 pull down a frozen version of the page. That sample is then ready to be used
 with the Trainer.
 
@@ -57,33 +58,33 @@ with the Trainer.
 
 Also reachable from the toolbar button is the ruleset trainer. Once you have
 collected a few dozen sample pages, labeled the interesting elements, and
-sketched out a ruleset, this automatically comes up with coefficients that
-deliver the most accuracy. Basically, you open the trainer and then drag a pile
-of samples into the same Firefox window; the trainer will then iteratively try
-your ruleset against all those tabs, working through different sets of
-coefficients until an optimum is reached.
+sketched out a ruleset, this automatically derives coefficients that deliver
+the most accuracy. Basically, you open the trainer and then drag a pile of
+samples into the same Firefox window; the trainer will then try your ruleset
+against all those tabs, working through different sets of coefficients until an
+optimum is reached.
 
 So that you don't have to fork FathomFox itself, your rulesets go into a second
 webextension that you author, the so-called "trainee" extension. An example is
 [Fathom Trainees](https://github.com/mozilla/fathom-trainees). See its readme
 for more.
 
-For now, the trainer's transition function is hard-coded to try integral
+For now, the Trainer's transition function is hard-coded to try integral
 values, even negative ones. This was chosen to work well with rulesets that
 keep their scores within the fuzzy-logic range of (0, 1). This carries the dual
 advantages of giving each score an intuitive interpretation as a probability
 and making types more composable, since the composition, once we add a future
-nth-root final step to type finalization, will also be within (0, 1). Adding
-another rule to your ruleset will no longer blow through any numeric thresholds
-you had programmed in.
+nth-root step to type finalization, will also be within (0, 1). Adding another
+rule to your ruleset will no longer blow through any numeric thresholds you had
+programmed in.
 
 ## Tips
 
 * Before freezing pages with the Developer Tools panel, use Firefox's
-  Responsive Design mode (command-option-M) to set a repeatable window size.
-  Set the same window size during training. This will ensure that the proper
-  CSS (which may be driven by media queries) will be frozen (and later
-  reloaded) with the page.
+  Responsive Design mode (command-option-M) to set a repeatable 1024x768 window
+  size. The Training automatically sets this same size during training. This
+  will ensure that the proper CSS (which may be driven by media queries) will
+  be frozen (and later reloaded) with the page.
 * For maximum fidelity, do your corpus capture in a clean copy of Firefox with
   no other add-ons. Some ad blockers will make changes to the DOM, like adding
   style attributes to ad iframes to hide them.
@@ -103,6 +104,11 @@ Thanks to Treora for his excellent freeze-dry library!
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
 ## Version History
+
+### 1.2
+
+* Add a decent UI to the devtools panel. Now you can see what you've labeled!
+  (glob)
 
 ### 1.1.1
 
