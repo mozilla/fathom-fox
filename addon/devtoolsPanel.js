@@ -1,47 +1,235 @@
 let backgroundPort = browser.runtime.connect();
 
-function updateUi(evalResult) {
-    if (!isError(evalResult)) {
-        const firstLabeledElementId = evalResult[0];
-        console.log(`result: ${firstLabeledElementId}`);
-        document.getElementById('smoo').innerHTML = firstLabeledElementId;
-    }
-}
+function initPanel() {
+    // Initialise freeze-page button.
+    document.getElementById('freeze-button').addEventListener('click', () => {
+        document.getElementById('freeze-button').disabled = true;
+        document.getElementById('spinner-container').classList.remove('hidden');
+        inspectedElementSelector()
+            .then((selector) => {
+                backgroundPort.postMessage({
+                    type: 'freeze',
+                    tabId: browser.devtools.inspectedWindow.tabId,
+                    selector: selector,
+                    options: {shouldScroll: false, wait: 0},
+                });
+            }).catch((e) => {
+                console.error(e);
+            });
 
-async function labelInspectedElement() {
-    /**
-     * The function embedded herein returns an "index path" to the inspected
-     * element. A return value like [1, 4, 0] means the element could be found by
-     * going into the 0th element of the document (usually an <html> tag), then the
-     * 4th child of that tag, then finding the 1st child of that tag.
-     */
-    backgroundPort.postMessage({type: 'label',
-                                tabId: browser.devtools.inspectedWindow.tabId,
-                                inspectedElement: await inspectedElementPath(),
-                                label: document.getElementById('labelField').value});
-}
-document.getElementById('labelButton').addEventListener('click', labelInspectedElement);
+    });
 
-async function freezePage() {
-    backgroundPort.postMessage({type: 'freeze',
-                                tabId: browser.devtools.inspectedWindow.tabId,
-                                inspectedElement: await inspectedElementPath(),
-                                options: {shouldScroll: false, wait: 0}});
-}
-document.getElementById('saveButton').addEventListener('click', freezePage);
+    // Initialise content-script.
+    backgroundPort.postMessage({
+        type: 'init',
+        tabId: browser.devtools.inspectedWindow.tabId,
+    });
 
-/**
- * Update the GUI to reflect the currently inspected page the first time the
- * panel loads.
- *
- * This runs once per Fathom dev-panel per inspected page. (When you navigate
- * to a new page, the Console pane comes forward, so this re-runs when the
- * Fathom pane is brought forward again. It does not run twice when you switch
- * away from and then back to the Fathom dev panel. Contents of the dev panel
- * are preserved across that interaction.)
- */
-async function initPanel() {
-    // When we load a new page with existing annotations:
-    //browser.devtools.inspectedWindow.eval(`document.querySelectorAll("[data-fathom]")[0].id`).then(updateUi);
+    // And initialise the UI.
+    updateLabeled();
 }
 initPanel();
+
+// Handle requests from background script.
+browser.runtime.onMessage.addListener((request) => {
+    if (request.type === 'init') {
+        resetFreeze();
+        backgroundPort.postMessage({
+            type: 'init',
+            tabId: browser.devtools.inspectedWindow.tabId,
+        });
+        updateLabeled();
+    } else if (request.type === 'refresh') {
+        resetFreeze();
+        browser.runtime.sendMessage({type: 'init'})
+            .then(updateLabeled)
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+});
+
+// Restore the freeze button and spinner back to original state.
+function resetFreeze() {
+    document.getElementById('freeze-button').disabled = false;
+    document.getElementById('spinner-container').classList.add('hidden');
+}
+
+// Returns a list of objects with the following attributes:
+//   preview: html preview of element
+//   label: the fathom label, or an empty string if unlabeled
+//   path: css path to element
+//   inspected: true if this element === $0
+function getLabeled() {
+    let evalScript = `
+        (function getLabeled() {
+            function elementMeta(el, isInspected) {
+                return {
+                    preview: el.outerHTML.replace(/^([^>]+>)[\\s\\S]*$/, '$1'),
+                    label: el.dataset.fathom || '',
+                    path: Simmer(el),
+                    inspected: isInspected,
+                };
+            }
+
+            let list = [];
+            if ($0) {
+                list.push(elementMeta($0, true));
+            }
+            for (const el of document.querySelectorAll('[data-fathom]')) {
+                if ($0 && el === $0) {
+                    continue;
+                }
+                list.push(elementMeta(el, false));
+            }
+            return list;
+        })();
+    `;
+    return resultOfEval(evalScript);
+}
+
+// Draw the table with the list of existing labeled elements (as generated
+// by `getLabeled()`.
+// If an element is inspected/selected with devtools (i.e. $0 is defined), it
+// will always be the first row in the table.
+function updateLabeledTable(labeled) {
+
+    function addTextCell(row, text, isHeader=false) {
+        const td = document.createElement(isHeader ? 'th' : 'td');
+        td.appendChild(document.createTextNode(text));
+        row.appendChild(td);
+        return td;
+    }
+
+    function inspectLabeled(event) {
+        event.preventDefault();
+        const escapedPath = event.target.dataset.path.replace(/"/g, '\\"');
+        const js = 'inspect(document.querySelector("' + escapedPath + '"))';
+        browser.devtools.inspectedWindow.eval(js)
+            .catch((e) => {
+                console.error(e);
+            });
+    }
+
+    function addPathCell(row, label) {
+        const td = document.createElement('td');
+        td.classList.add('path');
+        if (label.inspected) {
+            td.appendChild(document.createTextNode(label.path));
+        } else {
+            let a = document.createElement('a');
+            a.href = '#';
+            a.dataset.path = label.path;
+            a.addEventListener('click', inspectLabeled);
+            a.appendChild(document.createTextNode(label.path));
+            td.appendChild(a);
+        }
+        row.appendChild(td);
+    }
+
+    function updateLabel(event) {
+        backgroundPort.postMessage({
+            type: 'label',
+            tabId: browser.devtools.inspectedWindow.tabId,
+            selector: event.target.dataset.path,
+            label: event.target.value.trim(),
+        });
+    }
+
+    function addLabelCell(row, label) {
+        const td = document.createElement('td');
+        td.classList.add('label');
+        const input = document.createElement('input');
+        input.setAttribute('placeholder', 'unlabeled');
+        input.value = label.label;
+        input.dataset.path = label.path;
+        input.addEventListener('change', updateLabel);
+        td.appendChild(input);
+        row.appendChild(td);
+    }
+
+    function removeLabeled(event) {
+        event.preventDefault();
+        backgroundPort.postMessage({
+            type: 'label',
+            tabId: browser.devtools.inspectedWindow.tabId,
+            selector: event.target.dataset.path,
+            label: '',
+        });
+    }
+
+    function addClearLabelCell(row, label) {
+        const td = document.createElement('td');
+        td.classList.add('action');
+        const a = document.createElement('a');
+        a.href = '#';
+        a.classList.add('action-button');
+        a.dataset.path = label.path;
+        a.dataset.label = label.label;
+        a.setAttribute('title', 'Remove Label');
+        a.addEventListener('click', removeLabeled);
+        a.appendChild(document.createTextNode('✖'));
+        td.appendChild(a);
+        row.appendChild(td);
+    }
+
+    const table = document.createElement('table');
+    const headerRow = document.createElement('tr');
+    addTextCell(headerRow, 'Selector', true).classList.add('path');
+    addTextCell(headerRow, 'Element', true).classList.add('preview');
+    addTextCell(headerRow, 'Label', true).classList.add('label');
+    addTextCell(headerRow, '').classList.add('action');
+    table.appendChild(headerRow);
+
+    for (const label of labeled) {
+        const row = document.createElement('tr');
+        row.classList.add('hover');
+
+        addPathCell(row, label);
+        addTextCell(row, label.preview).classList.add('preview');
+        addLabelCell(row, label);
+        if (!label.inspected) {
+            addClearLabelCell(row, label);
+        }
+
+        table.appendChild(row);
+    }
+
+    const container = document.getElementById('labels');
+    emptyElement(container);
+    container.appendChild(table);
+}
+
+// Update the UI to show either the table of labeled elements, or
+// a message informing the user to use the inspection panel.
+function updateLabeled() {
+    getLabeled()
+        .then((labeled) => {
+            updateLabeledTable(labeled);
+
+            if (labeled.length === 0) {
+                // nothing inspected or already labeled
+                document.getElementById('no-selection').classList.remove('hidden');
+                document.getElementById('no-labels').classList.add('hidden');
+                document.getElementById('labels').classList.add('hidden');
+
+            } else {
+                // show labels table
+                document.getElementById('no-labels').classList.add('hidden');
+                document.getElementById('labels').classList.remove('hidden');
+                // if the first item is unlabeled it's the inspected element
+                if (labeled[0].inspected) {
+                    // selection
+                    document.getElementById('no-selection').classList.add('hidden');
+                } else {
+                    // no selection
+                    document.getElementById('no-selection').classList.remove('hidden');
+                }
+
+
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+}
