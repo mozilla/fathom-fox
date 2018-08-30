@@ -5,38 +5,40 @@ rulesets within Firefox
 
 ## Quick Start
 
-Getting started with the "overlay" ruleset, which is an example of how you
-might use FathomFox to design a Fathom ruleset that finds pop-up overlays:
+Here is an example of how you might use FathomFox to train a Fathom ruleset
+that finds the semi-transparent overlays behind in-page pop-ups:
 
 1. Fork, clone, and install the
    [Fathon-Trainees](https://github.com/mozilla/fathom-trainees/) repository as
    per its instructions.
-2. Install the [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/)
-   addon.
-3. Install dependencies with `yarn`, build with `yarn build`, then run
+2. Install dependencies with `yarn deps`, build with `yarn build`, then run
    `yarn browser` to launch Firefox.
-4. Using `about:debugging` install your `fathom-trainess` extension from its
-   `addon/manifest.json` file.
-5. Navigate to a web site that has a modal dialog with a background overlay.
+3. Using `about:debugging`, install your fathom-trainess extension by selecting
+   its `addon/manifest.json` file.
+4. Install [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/).
+5. Navigate to a web page that has a modal dialog with a background overlay.
 6. Using Firefox's developer tools inspector, select the full-page overlay
    element.
-7. Switch to the Fathom developer tools tab, enter `overlay` in the label
-   field, and click Save.
-8. From the main toolbar select the `FathomFox` icon, then choose `Trainer`.
-9. Click `Train on the tabs in this window`.
+7. Switch to the Fathom developer tools tab, enter "overlay" in the label
+   field, and click Save Page.
+8. After you have labeled several pages like this, drag them from your
+   filesystem into an empty Firefox window, being careful not to leave any
+   empty tabs.
+9. From the main toolbar, select the FathomFox icon, then choose Trainer.
+10. Click "Train on the tabs in this window".
 
 ## Corpus Collector
 
-First, there is a bulk Corpus Collector tool, accessible from a toolbar button.
-Enter some URLs, and it "freezes" those pages to your usual downloads folder,
-inlining images and CSS into data URLs and getting rid of JS to keep pages
-deterministic so they can be used as a training or testing corpus. (Scripts
-loading scripts loading other scripts is surprisingly common in the wild, which
-often makes pages turn out unpredictably, not to mention being dependent on the
-network.) The Corpus Collector is useful for grabbing hundreds of pages at
-once, but it doesn't give you the opportunity to stop and interact with each
-(though it can scroll to the bottom or wait a predetermined time before
-freezing).
+First among FathomFox's toolset is a bulk Corpus Collector tool, accessible
+from a toolbar button. Enter some URLs, and it "freezes" those pages to your
+usual downloads folder, inlining images and CSS into data URLs and getting rid
+of JS to keep pages deterministic so they can be used as a training or testing
+corpus. (Scripts loading scripts loading other scripts is surprisingly common
+in the wild, which often makes pages turn out unpredictably, not to mention
+being dependent on the network.) The Corpus Collector is useful for grabbing
+hundreds of pages at once, but it doesn't give you the opportunity to stop and
+interact with each (though it can scroll to the bottom or wait a predetermined
+time before freezing).
 
 ## The Developer Tools Panel
 
