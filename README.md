@@ -9,18 +9,19 @@ Getting started with the "overlay" ruleset, which is an example of how you
 might use FathomFox to design a Fathom ruleset that finds pop-up overlays:
 
 1. Fork, clone, and install the
-   [Fathon-Trainees](https://github.com/mozilla/fathom-trainees/) repository as per
-   its instructions.
+   [Fathon-Trainees](https://github.com/mozilla/fathom-trainees/) repository as
+   per its instructions.
 2. Install the [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/)
    addon.
-3. Install dependencies with `yarn`, build with `yarn build`, then run `yarn browser`
-   to launch Firefox.
+3. Install dependencies with `yarn`, build with `yarn build`, then run
+   `yarn browser` to launch Firefox.
 4. Using `about:debugging` install your `fathom-trainess` extension from its
    `addon/manifest.json` file.
 5. Navigate to a web site that has a modal dialog with a background overlay.
-6. Using Firefox's developer tools inspector, select the full-page overlay element.
-7. Switch to the Fathom developer tools tab, enter `overlay` in the label field,
-   and click Save.
+6. Using Firefox's developer tools inspector, select the full-page overlay
+   element.
+7. Switch to the Fathom developer tools tab, enter `overlay` in the label
+   field, and click Save.
 8. From the main toolbar select the `FathomFox` icon, then choose `Trainer`.
 9. Click `Train on the tabs in this window`.
 
@@ -98,8 +99,8 @@ Thanks to Treora for his excellent freeze-dry library!
 1. Install Firefox Nightly or Firefox Developer Edition.
 2. Check out the source code.
 3. `cd fathom-fox`
-4. Install dependencies: `yarn` (note `npm` will not work as it chooses different
-   dependencies).
+4. Install dependencies: `yarn` (note `npm` will not work as it chooses
+   different dependencies).
 5. Bundle up the extension, and launch a new copy of Nightly with it already
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
@@ -112,7 +113,8 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ### 1.1.1
 
-* Fix a bug where the Save button on the devtools panel wouldn't do anything unless an element was inspected.
+* Fix a bug where the Save button on the devtools panel wouldn't do anything
+  unless an element was inspected.
 
 ### 1.1
 
@@ -121,5 +123,6 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ### 1.0.1
 
-* Fix the "No matching message handler" errors when downloading using the Corpus Collector.
+* Fix the "No matching message handler" errors when downloading using the
+  Corpus Collector.
 * Switch from webpack to rollup.
