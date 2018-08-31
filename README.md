@@ -108,6 +108,11 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 1.2.2
+
+* Fix bug where some inspected elements would yield merely "false" in the
+  Fathom dev panel.
+
 ### 1.2.1
 
 * Fix a packaging problem that was causing the dev panel not to work, due to a
