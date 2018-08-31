@@ -111,6 +111,13 @@ function updateLabeledTable(labeled) {
             });
     }
 
+    function addErrorRow(table, error) {
+        const row = document.createElement('tr');
+        row.classList.add('error');
+        addTextCell(row, error).setAttribute('colspan', '3');
+        table.appendChild(row);
+    }
+
     function addPathCell(row, label) {
         const td = document.createElement('td');
         td.classList.add('path');
@@ -182,6 +189,11 @@ function updateLabeledTable(labeled) {
     table.appendChild(headerRow);
 
     for (const label of labeled) {
+        if (!label.path) {
+            addErrorRow(table, 'Failed to calculate CSS selector for the inspected element');
+            continue;
+        }
+
         const row = document.createElement('tr');
         row.classList.add('hover');
 
