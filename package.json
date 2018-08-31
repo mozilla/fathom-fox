@@ -1,6 +1,6 @@
 {
   "name": "fathom-fox",
-  "version": "1.2",
+  "version": "1.2.1",
   "description": "Tools for collecting a Fathom training corpus and, eventually, debugging a ruleset",
   "scripts": {
     "build": "rollup -c",

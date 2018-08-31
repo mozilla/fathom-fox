@@ -108,6 +108,11 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 1.2.1
+
+* Fix a packaging problem that was causing the dev panel not to work, due to a
+  missing copy of the Simmer library.
+
 ### 1.2
 
 * Add a decent UI to the devtools panel. Now you can see what you've labeled!
