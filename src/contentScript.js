@@ -67,11 +67,6 @@ function injectSimmer() {
     const script = document.createElement('script');
     script.setAttribute('id', 'fathom-simmer');
     script.setAttribute('src', browser.extension.getURL('simmer.js'));
-    script.setAttribute('onload', `
-        window.Simmer = window.Simmer.configure({
-            depth: 25
-        });
-    `);
     document.head.appendChild(script);
 }
 

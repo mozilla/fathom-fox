@@ -31,7 +31,7 @@ function emptyElement(element) {
 // Requires simmer.js injected into current page.
 // simmer.js is injected when the devtools panel is initialised when first opened.
 async function inspectedElementSelector() {
-    return resultOfEval(`Simmer($0)`);
+    return resultOfEval(`Simmer.configure({depth: 25})($0)`);
 }
 
 /**

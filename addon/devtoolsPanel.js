@@ -67,7 +67,7 @@ function getLabeled() {
                 return {
                     preview: el.outerHTML.replace(/^([^>]+>)[\\s\\S]*$/, '$1'),
                     label: el.dataset.fathom || '',
-                    path: Simmer(el),
+                    path: Simmer.configure({depth: 25})(el),
                     inspected: isInspected,
                 };
             }
