@@ -67,8 +67,7 @@ function injectSimmer() {
     const script = document.createElement('script');
     script.setAttribute('id', 'fathom-simmer');
     script.setAttribute('src', browser.extension.getURL('simmer.js'));
-    const head = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
-    head.insertBefore(script, head.lastChild);
+    document.head.appendChild(script);
 }
 
 function removeSimmer() {
@@ -80,6 +79,10 @@ function removeSimmer() {
 
 // Set or clear the label on the element specifed by request.selector.
 function setLabel(request) {
+    if (!request.selector) {
+        return;
+    }
+
     // Find target element.
     const inspectedElement = document.querySelector(request.selector);
     if (!inspectedElement) {
@@ -127,6 +130,10 @@ function freezePage(request) {
  */
 function showHighlight(selector) {
     hideHighlight();
+
+    if (!selector) {
+        return;
+    }
 
     const element = document.querySelector(selector);
     if (!element) {
