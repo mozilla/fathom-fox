@@ -2,37 +2,15 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <style type="text/css">
-      /* I wish there were a reasonable default appearance/behavior for buttons available to extensions so I didn't have to make my own half-baked one. Ideally, this would look like a Photon menu. */
-      button {
-        background-color: rgb(255, 255, 255);
-        border-width: 0 0 1px 0;
-        display: block;
-        padding: 12px;
-        text-align: center;
-        width: 100%;
-      }
-
-      button:last-child, button:last-child:active, button:last-child:hover {
-        border-bottom-width: 0;
-      }
-
-      button:active, button:active:hover {
-        background-color: rgb(205, 205, 205);
-        border-width: 0 0 1px 0;
-      }
-
-      button:hover {
-        background-color: rgb(240, 240, 240);
-        border-width: 0 0 1px 0;
-      }
-    </style>
   </head>
   <body>
-    <div>
-      <!-- The &nbsp; keeps the button text from momentarily wrapping when I click the Trainer button. There's probably something in the browser default stylesheet that makes this happen. -->
-      <button id="collectCorpus">Corpus&nbsp;Collector</button>
-      <button id="train">Trainer</button>
+    <div id="popup" class="panel-section panel-section-list">
+      <div id="collectCorpus" class="panel-list-item">
+        <div class="text">Corpus Collector</div>
+      </div>
+      <div id="train" class="panel-list-item">
+        <div class="text">Trainer</div>
+      </div>
     </div>
     <script src="/actionMenu.js"></script>
   </body>
