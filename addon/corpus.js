@@ -14,7 +14,7 @@ async function freezeAllPages(event) {
         return;
     }
 
-    initialiseFromForm();
+    initializeFromForm();
     emptyElement(document.getElementById('status'));
 
     // We need at least one url.
@@ -31,7 +31,7 @@ async function freezeAllPages(event) {
 
     // Listen for tab events before we start creating tabs; this avoids race
     // conditions between creating tabs and waiting for loading to complete.
-    browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    async function onUpdated(tabId, changeInfo, tab) {
         if (
             tab.windowId !== windowId ||
             tab.url === 'about:blank' ||
@@ -41,55 +41,55 @@ async function freezeAllPages(event) {
         }
 
         if (tab.url.startsWith('moz-extension://')) {
-            // The blank placeholder page has loaded, start the freezing process.
+            // The blank placeholder page has loaded.
+            // Set its viewport size to a standard dimension.
+            await setViewportSize(tab, 1024, 768);
+            // The start the freezing process.
             document.dispatchEvent(new CustomEvent(
                 'fathom:next',
-                { detail: windowId }
+                {detail: windowId}
             ));
 
         } else {
             // Tab that needs to be frozen has loaded.
 
-            // Setup the timeout; this covers both the page load and freeze time.
-            let timer = setTimeout(() => {
+            // Set up the timeout; this covers both the page load and freeze time.
+            let timer = setTimeout(freezeTimeout, gTimeout * 1000);
+            async function freezeTimeout() {
                 // Timeout.
                 console.error(tab.url, 'timeout');
                 clearTimeout(timer);
                 setCurrentStatus('timeout', true);
 
                 // Close the tab and process the next url.
-                browser.tabs.remove(tab.id)
-                    .then(() => {
-                        document.dispatchEvent(new CustomEvent(
-                            'fathom:next',
-                            { detail: windowId }
-                        ));
-                    })
-            }, gTimeout * 1000);
+                await browser.tabs.remove(tab.id);
+                document.dispatchEvent(new CustomEvent(
+                    'fathom:next',
+                    {detail: windowId}
+                ));
+            }
 
             // Freeze this page.
             document.dispatchEvent(new CustomEvent(
                 'fathom:freeze',
-                { detail: { windowId: windowId, timer: timer }}
+                {detail: {windowId: windowId, timer: timer}}
             ));
         }
-    });
+    }
+    browser.tabs.onUpdated.addListener(onUpdated);
 
     // Make freezing host window, and set its size. The blank page acts as a
     // placeholder so we don't have to repeatedly (and slowly) open and close
     // the window.
-    windowId = (await browser.windows.create({
-        url: '/pages/blank.html',
-        width: 1024,
-        height: 768,
-    })).id;
+    windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
 }
 document.getElementById('freeze').onclick = freezeAllPages;
 
 function fathomNext(event) {
+    // Load next tab from gUrls, or close the window if we're done.
+
     const windowId = event.detail;
 
-    // Load next tab, or close the window if we're done.
     gUrlIndex++;
     if (gUrlIndex >= gUrls.length) {
         browser.windows.remove(windowId);
@@ -112,7 +112,7 @@ document.addEventListener('fathom:next', fathomNext, false);
 async function fathomFreeze(event) {
     const windowId = event.detail.windowId;
     const timer = event.detail.timer;
-    const tab = (await browser.tabs.query({ windowId }))[0];
+    const tab = (await browser.tabs.query({windowId}))[0];
 
     setCurrentStatus('freezing');
     try {
@@ -120,13 +120,13 @@ async function fathomFreeze(event) {
         // our top-level stuff in a function. Instead, we use messaging.
         await browser.tabs.executeScript(
             tab.id,
-            { file: '/contentScript.js' }
+            {file: '/contentScript.js'}
         );
 
         // Call freeze-dry to fetch html.
         const html = await browser.tabs.sendMessage(
             tab.id,
-            { type: 'freeze', options: gFreezeOptions }
+            {type: 'freeze', options: gFreezeOptions}
         );
 
         // Clear timeout here so we don't bail out while writing to disk.
@@ -134,24 +134,20 @@ async function fathomFreeze(event) {
 
         // Save html to disk.
         const filename = gUrls[gUrlIndex].filename;
-        await download(html, { filename });
+        await download(html, {filename});
 
         setCurrentStatus('downloaded');
-    } catch(e) {
+    } catch (e) {
         console.error(tab.url, e.message);
         // When the tab is closed while things are processing we get errors that
-        // are less than informative.
-        // "Can't access dead object" means the DOM changed while freeze-dry was
-        // running and an object that it's trying to resolve was removed.
-        // "Message manager disconnected" generally means the tab was closed.
-        if (
-            e.message === "can't access dead object" ||
-            e.message === 'Message manager disconnected'
-        ) {
-            setCurrentStatus('error (freezing failed)', true);
-        } else {
-            setCurrentStatus('error (' + e.message + ')', true);
+        // are less than informative and require rewriting to be grokable.
+        let error = e.message;
+        if (error === "can't access dead object") {
+            error = "unexpected removal of DOM element (can't access dead object)";
+        } else if (e.message === 'Message manager disconnected') {
+            error = "tab unexpectedly closed (message manager disconnected)";
         }
+        setCurrentStatus('freezing failed: ' + error, true);
     } finally {
         clearTimeout(timer);
         await browser.tabs.remove(tab.id);
@@ -160,7 +156,7 @@ async function fathomFreeze(event) {
     // Done with this url, trigger loading of the next.
     document.dispatchEvent(new CustomEvent(
         'fathom:next',
-        { detail: windowId }
+        {detail: windowId}
     ));
 }
 document.addEventListener('fathom:freeze', fathomFreeze, false);
@@ -191,8 +187,8 @@ function setCurrentStatus(message, isError=false) {
     }
 }
 
-function initialiseFromForm() {
-    // Initialise globals from the form.
+function initializeFromForm() {
+    // Initialize globals from the form.
     gFreezeOptions = {
         wait: parseFloat(document.getElementById('wait').value),
         shouldScroll: document.getElementById('shouldScroll').checked,
@@ -213,13 +209,11 @@ function initialiseFromForm() {
         .map(line => {
             // Split into filename and url.
             const parts = line.split(/\s+/, 2);
-            let obj = {};
+            let obj;
             if (parts.length === 1) {
-                obj.filename = undefined;
-                obj.url = parts[0];
+                obj = {filename: undefined, url: parts[0]};
             } else {
-                obj.filename = parts[0];
-                obj.url = parts[1];
+                obj = {filename: parts[0] + '.html', url: parts[1]};
             }
             // Prepend protocol if missing.
             if (!obj.url.match(/^https?:\/\//)) {
@@ -229,3 +223,9 @@ function initialiseFromForm() {
         });
 }
 
+function setDownloadButtonEnabled() {
+    initializeFromForm();
+    document.getElementById('freeze').disabled = gUrls.length === 0;
+}
+document.getElementById('pages').addEventListener('keyup', setDownloadButtonEnabled);
+setDownloadButtonEnabled();

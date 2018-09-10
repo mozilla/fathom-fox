@@ -7,5 +7,9 @@
   },
   "parserOptions": {
     "ecmaVersion": 9
+  },
+  "rules": {
+    "object-curly-spacing": "error",
+    "keyword-spacing": "error"
   }
 }
