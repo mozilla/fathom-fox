@@ -9,8 +9,8 @@ async function download(html, options = {}) {
     function handleChanged(delta) {
         if (delta.state && delta.state.current === "complete") {
             URL.revokeObjectURL(url);
+            browser.downloads.onChanged.removeListener(handleChanged);
         }
-        browser.downloads.onChanged.removeListener(handleChanged);
     }
     browser.downloads.onChanged.addListener(handleChanged);
 
