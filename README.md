@@ -110,6 +110,16 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 1.3
+
+* Re-saving frozen pages should now be idempotent most of the time. (glob)
+* Solve some causes of Corpus Collector freezing. (glob)
+* Add progress reporting during freezing. (glob)
+* Use the hostname as a download filename in the absence of a user-provided
+  one. (glob)
+* Use standard Photon menus for the toolbar button (since the stylesheets have
+  now been documented). (glob)
+
 ### 1.2.2
 
 * Fix bug where some inspected elements would yield merely "false" in the
