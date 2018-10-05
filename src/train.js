@@ -134,10 +134,10 @@ class Tuner {
     }
 
     async initialSolution() {
-        return await browser.runtime.sendMessage(
+        return (await browser.runtime.sendMessage(
             'fathomtrainees@mozilla.com',
-            {type: 'traineeCoeffs',
-             traineeId: this.traineeId});
+            {type: 'trainee',
+             traineeId: this.traineeId})).coeffs;
     }
 }
 
@@ -151,16 +151,17 @@ async function trainOnTabs() {
     document.getElementById('output').classList.remove('hidden');
 
     try {
-
         // TODO: Using "active" here rather than a tab ID presents a race condition
         // if you quickly switch away from the tab after clicking the Train button.
         const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
-        await setViewportSize(tabs[0], 1024, 768);  // for consistent element sizing in samples due to text wrap, etc.
-
         const rulesetName = document.getElementById('ruleset').value;
+        const viewportSize = (await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {type: 'trainee',
+             traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
+        await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
         const tuner = new Tuner(tabs, rulesetName);
         await tuner.anneal(updateProgress);
-
     } finally {
         // Restore UI state, leaving output visible.
         gProgressBar.classList.add('hidden');
