@@ -110,6 +110,13 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 2.0
+
+* Support customizable viewport sizes.
+* Stop using `traineeCoeffs` message in favor of `trainee`, which is more
+  future-proof. This requires a fathom-trainees fork based on
+  d93bc593a08f6503d137df4d35ce2a2bc6b93b6e or later.
+
 ### 1.3
 
 * Re-saving frozen pages should now be idempotent most of the time. (glob)
