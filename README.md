@@ -87,9 +87,9 @@ programmed in.
 
 * Before freezing pages with the Developer Tools panel, use Firefox's
   Responsive Design mode (command-option-M) to set a repeatable 1024x768 window
-  size. The Training automatically sets this same size during training. This
-  will ensure that the proper CSS (which may be driven by media queries) will
-  be frozen (and later reloaded) with the page.
+  size. The Trainer automatically sets this same size during training (by
+  default). This will ensure that the proper CSS (which may be driven by media
+  queries) will be frozen (and later reloaded) with the page.
 * For maximum fidelity, do your corpus capture in a clean copy of Firefox with
   no other add-ons. Some ad blockers will make changes to the DOM, like adding
   style attributes to ad iframes to hide them.
