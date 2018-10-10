@@ -1,4 +1,4 @@
-let gProgressBar, gCoeffsDiv, gAccuracyDiv, gGoodBadDiv;
+let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gGoodBadDiv;
 
 /**
  * Awaitable setDefault that stores Promise values, not the Promises
@@ -176,15 +176,37 @@ function empty(element) {
     }
 }
 
+/**
+ * Return [low end, high end] of 95% CI for accuracy using binomial proportion
+ * confidence interval formula.
+ */
+function confidenceInterval(successRatio, numberOfSamples) {
+    const z_for_95_percent = 1.96;
+    const addend = z_for_95_percent * Math.sqrt(successRatio * (1 - successRatio) / numberOfSamples);
+    return [successRatio - addend, Math.min(1, successRatio + addend)];
+}
+
+/**
+ * Format a ratio as a rounded-off percentage.
+ */
+function percentify(ratio) {
+    return `${(ratio * 100).toFixed(1)}%`;
+}
+
 function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
     // Tick progress meter.
     gProgressBar.setAttribute('value', ratio);
 
     // Update best coeffs and accuracy.
     gCoeffsDiv.firstChild.textContent = `[${bestSolution}]`;
-    gAccuracyDiv.firstChild.textContent = `${((1 - bestCost) * 100).toFixed(1)}%`;
+    gAccuracyDiv.firstChild.textContent = percentify(1 - bestCost);
 
     if (successesOrFailures) {
+        // Draw CI readout:
+        const [ciLow, ciHigh] = confidenceInterval(1 - bestCost, successesOrFailures.length);
+        gCiDiv.firstChild.textContent = `${percentify(ciLow)} - ${percentify(ciHigh)}`;
+
+        // Draw good/bad chart:
         if (gGoodBadDiv.childElementCount !== successesOrFailures.length) {
             empty(gGoodBadDiv);
             for (const _ of successesOrFailures) {
@@ -193,7 +215,6 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
                 gGoodBadDiv.appendChild(div);
             }
         }
-
         let div = gGoodBadDiv.firstElementChild;
         for (let [succeeded, name] of successesOrFailures) {
             div.firstChild.textContent = name;
@@ -211,16 +232,19 @@ async function initPage(document) {
     gProgressBar = document.getElementById('progress');
     gCoeffsDiv = document.getElementById('coeffs');
     gAccuracyDiv = document.getElementById('accuracy');
+    gCiDiv = document.getElementById('ci');
     gGoodBadDiv = document.getElementById('goodBad');
 
     // Initialise elements to a known state.
     empty(gCoeffsDiv);
     empty(gAccuracyDiv);
+    empty(gCiDiv);
     empty(gGoodBadDiv);
 
     // Create a text node in coeffs and accuracy once, rather than on each update.
     gCoeffsDiv.appendChild(document.createTextNode(''));
     gAccuracyDiv.appendChild(document.createTextNode(''));
+    gCiDiv.appendChild(document.createTextNode(''));
 
     document.getElementById('train').onclick = trainOnTabs;
 

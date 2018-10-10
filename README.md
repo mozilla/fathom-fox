@@ -110,6 +110,11 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 2.1
+
+* Add computation of a 95% confidence interval for accuracy, using binomial
+  proportion confidence intervals.
+
 ### 2.0
 
 * Support customizable viewport sizes.
