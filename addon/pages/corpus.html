@@ -48,6 +48,14 @@ https://another.com/page" rows=10 class="browser-style"></textarea>
           <label for="timeout" title="Give up if page load and freeze takes longer than this.">Timeout:</label>
           <input type="text" required pattern="[0-9]+" size="2" id="timeout" value="60"> sec
         </div>
+        <div>
+          <label title="Resize the window so the viewport is this big.">
+            Viewport Size:
+            <input type="text" required pattern="[0-9]+" size="4" id="viewportWidth" value="1024">
+            ×
+            <input type="text" required pattern="[0-9]+" size="4" id="viewportHeight" value="768">
+          </label>
+        </div>
       </div>
     </form>
     <ul id="status"></ul>

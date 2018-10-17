@@ -43,7 +43,7 @@ async function freezeAllPages(event) {
         if (tab.url.startsWith('moz-extension://')) {
             // The blank placeholder page has loaded.
             // Set its viewport size to a standard dimension.
-            await setViewportSize(tab, 1024, 768);
+            await setViewportSize(tab, gViewportWidth, gViewportHeight);
             // The start the freezing process.
             document.dispatchEvent(new CustomEvent(
                 'fathom:next',
@@ -200,6 +200,8 @@ function initializeFromForm() {
         shouldScroll: document.getElementById('shouldScroll').checked,
     };
     gUrlIndex = -1;
+    gViewportWidth = parseInt(document.getElementById('viewportWidth').value);
+    gViewportHeight = parseInt(document.getElementById('viewportHeight').value);
 
     // Note we extend the timeout by the freeze delay.
     gTimeout = parseFloat(document.getElementById('timeout').value) + gFreezeOptions.wait;
