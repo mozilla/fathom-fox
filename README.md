@@ -110,6 +110,12 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 2.2
+
+* Make viewport size customizable during capture.
+* Bump freeze delay from 0 to 1. This avoids many dead-object errors during
+  capture.
+
 ### 2.1
 
 * Add computation of a 95% confidence interval for accuracy, using binomial
