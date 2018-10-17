@@ -143,7 +143,7 @@ async function fathomFreeze(event) {
         // are less than informative and require rewriting to be grokable.
         let error = e.message;
         if (error === "can't access dead object") {
-            error = "unexpected removal of DOM element (can't access dead object)";
+            error = "unexpected removal of DOM element (can't access dead object). Try a longer freeze delay.";
         } else if (e.message === 'Message manager disconnected') {
             error = "tab unexpectedly closed (message manager disconnected)";
         }
