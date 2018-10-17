@@ -64,8 +64,8 @@ with the Trainer.
 Also reachable from the toolbar button is the ruleset trainer. Once you have
 collected a few dozen sample pages, labeled the interesting elements, and
 sketched out a ruleset, this automatically derives coefficients that deliver
-the most accuracy. Basically, you open the trainer and then drag a pile of
-samples into the same Firefox window; the trainer will then try your ruleset
+the most accuracy. Basically, you open the Trainer and then drag a pile of
+samples into the same Firefox window; the Trainer will then try your ruleset
 against all those tabs, working through different sets of coefficients until an
 optimum is reached.
 
@@ -117,7 +117,7 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ### 2.0
 
-* Support customizable viewport sizes.
+* Support customizable viewport sizes in Trainer.
 * Stop using `traineeCoeffs` message in favor of `trainee`, which is more
   future-proof. This requires a fathom-trainees fork based on
   d93bc593a08f6503d137df4d35ce2a2bc6b93b6e or later.

@@ -38,14 +38,14 @@ https://another.com/page" rows=10 class="browser-style"></textarea>
       <div id="options">
         <div>
           <input type="checkbox" id="shouldScroll">
-          <label for="shouldScroll" title="Scroll to the bottom of the page before freezing.">Scroll to bottom</label>
+          <label for="shouldScroll" title="Scroll to the bottom of the page before freezing.">Scroll to Bottom</label>
         </div>
         <div>
-          <label for="wait" title="Wait this long before freezing the page.">Freeze Delay</label>
           <input type="text" required pattern="[0-9]+" min="0" size="2" id="wait" value="0"> sec
+          <label for="wait" title="Wait this long before freezing the page.">Freeze Delay:</label>
         </div>
         <div>
-          <label for="timeout" title="Give up if page load and freeze takes longer than this.">Timeout</label>
+          <label for="timeout" title="Give up if page load and freeze takes longer than this.">Timeout:</label>
           <input type="text" required pattern="[0-9]+" size="2" id="timeout" value="60"> sec
         </div>
       </div>
