@@ -63,9 +63,19 @@ function resetFreeze() {
 function getLabeled() {
     let evalScript = `
         (function getLabeled() {
+            // Truncate a string, and return it. Append an ellipsis or
+            // something if the string was long enough to truncate.
+            function abbreviate(str, length, ellipsis) {
+                if (str.length > length) {
+                    return str.slice(0, length) + ellipsis;
+                } else {
+                    return str;
+                }
+            }
+
             function elementMeta(el, isInspected) {
                 return {
-                    preview: el.outerHTML.replace(/^([^>]+>)[\\s\\S]*$/, '$1'),
+                    preview: abbreviate(el.outerHTML, 200, '...>').replace(/^([^>]+>)[\\s\\S]*$/, '$1'),
                     label: el.dataset.fathom || '',
                     path: Simmer.configure({depth: 25})(el),
                     inspected: isInspected,

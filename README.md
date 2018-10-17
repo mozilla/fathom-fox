@@ -115,6 +115,7 @@ Thanks to Treora for his excellent freeze-dry library!
 * Make viewport size customizable during capture.
 * Bump freeze delay from 0 to 1. This avoids many dead-object errors during
   capture.
+* Limit length of tags in devtools panel so they don't make it unusably wide.
 
 ### 2.1
 
