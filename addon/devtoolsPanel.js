@@ -163,6 +163,9 @@ function updateLabeledTable(labeled) {
         input.addEventListener('change', updateLabel);
         td.appendChild(input);
         row.appendChild(td);
+        if (label.inspected) {
+            input.setAttribute('id', 'inspectedLabel');
+        }
     }
 
     function removeLabeled(event) {
@@ -234,7 +237,6 @@ function updateLabeled() {
                 document.getElementById('no-selection').classList.remove('hidden');
                 document.getElementById('no-labels').classList.add('hidden');
                 document.getElementById('labels').classList.add('hidden');
-
             } else {
                 // show labels table
                 document.getElementById('no-labels').classList.add('hidden');
@@ -243,6 +245,10 @@ function updateLabeled() {
                 if (labeled[0].inspected) {
                     // selection
                     document.getElementById('no-selection').classList.add('hidden');
+                    const inspectedLabel = document.getElementById('inspectedLabel');
+                    if (inspectedLabel) {
+                        inspectedLabel.focus();
+                    }
                 } else {
                     // no selection
                     document.getElementById('no-selection').classList.remove('hidden');

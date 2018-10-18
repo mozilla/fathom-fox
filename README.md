@@ -113,9 +113,11 @@ Thanks to Treora for his excellent freeze-dry library!
 ### 2.2
 
 * Make viewport size customizable during capture.
-* Bump freeze delay from 0 to 1. This avoids many dead-object errors during
-  capture.
+* Bump default freeze delay from 0 to 1. This avoids many dead-object errors
+  during bulk capture.
 * Limit length of tags in devtools panel so they don't make it unusably wide.
+* Focus the new label field after inspecting an element and switching to the
+  Fathom devtools panel. This makes for faster entry.
 
 ### 2.1
 
