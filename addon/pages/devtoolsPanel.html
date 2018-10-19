@@ -27,21 +27,27 @@
         font-style: italic;
       }
 
-      #has-selection label {
-        width: 50em;
-      }
-
       #labels table {
         border-spacing: 0;
         padding: 0;
       }
 
-      #labels .path, #labels .label, #labels .action {
-        white-space: nowrap;
+      table {
+        table-layout: fixed;
+        width: 100%;
       }
 
-      #labels .preview {
-        width: 100%;
+      #labels .path, #labels .preview {
+        min-width: 40%;
+      }
+
+      #labels .action {
+        width: 2.5em;
+      }
+
+      /* Make the input take up the whole cell so it's close to the delete button. */
+      #labels .label, #labels .label input {
+        width: 25ex
       }
 
       #labels td.preview {
@@ -68,7 +74,7 @@
       }
 
       #labels th, #labels td {
-        padding: 2px 5px;
+        padding: 5px 5px;
       }
 
       #spinner-container {
