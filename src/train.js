@@ -37,7 +37,7 @@ class Tuner {
         updateProgress(0,
                        bestSolution,
                        bestCost,
-                       (await this.whetherTabsSucceeded(bestSolution)).map((succeeded, i) => [succeeded, urlFilename(this.tabs[i].url)]));
+                       await this.verboseSuccessReports(bestSolution));
         let m = 0;
         let n = 0;
         let hits = 0, misses = 0;
@@ -66,7 +66,7 @@ class Tuner {
                         updateProgress(i / this.COOLING_STEPS,
                                        bestSolution,
                                        bestCost,
-                                       (await this.whetherTabsSucceeded(bestSolution)).map((succeeded, i) => [succeeded, urlFilename(this.tabs[i].url)]));
+                                       await this.verboseSuccessReports(bestSolution));
                     }
                 } else {
                     // Sometimes take non-improvements.
@@ -92,6 +92,17 @@ class Tuner {
     }
 
     /**
+     * Try the ruleset on each tab, and return a bigger blob of info that
+     * allows us to show the user which element it found, for debugging.
+     */
+    async verboseSuccessReports(coeffs) {
+        return (await this.whetherTabsSucceeded(coeffs)).map((succeeded, i) => ({
+            succeeded,
+            filename: urlFilename(this.tabs[i].url),
+            tabId: this.tabs[i].id}));
+    }
+
+    /**
      * Send a message to all the pages in the corpus, telling them "Run ruleset
      * ID X, and tell me whether its default query (the one with the same out()
      * key as its ID) was right or wrong." Do it by delegating to the FathomFox
@@ -109,8 +120,6 @@ class Tuner {
     async solutionCost(coeffs) {
         const attempts = await this.whetherTabsSucceeded(coeffs);
         const numSuccesses = attempts.reduce((accum, value) => value ? accum + 1 : accum, 0);
-
-        //console.log(coeffs, attempts.reduce((failedUrls, didSucceed, i) => didSucceed ? failedUrls : (failedUrls + this.tabs[i].url + '\n'), []));
 
         // When all complete, combine for a total cost:
         return (attempts.length - numSuccesses) / attempts.length;
