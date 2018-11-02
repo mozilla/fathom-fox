@@ -225,10 +225,13 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
             }
         }
         let div = gGoodBadDiv.firstElementChild;
-        for (let [succeeded, name] of successesOrFailures) {
-            div.firstChild.textContent = name;
-            div.setAttribute('class', succeeded ? 'good' : 'bad');
+        for (let sf of successesOrFailures) {
+            div.firstChild.textContent = sf.filename + ': tab ' + sf.tabId;
+            div.setAttribute('class', sf.succeeded ? 'good' : 'bad');
             div = div.nextElementSibling;
+            if (!sf.succeeded) {
+                browser.tabs.update(sf.tabId, {active: true});
+            }
         }
     }
 }
