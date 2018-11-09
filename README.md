@@ -15,7 +15,7 @@ that finds the semi-transparent overlays behind in-page pop-ups:
    launch Firefox.  `yarn install` (or just `yarn`) will fail with an error
    about an incompatible node version, use `yarn build` to install modules, or
    pass the `--ignore-engines` switch to `yarn install`.
-3. Using `about:debugging`, install your fathom-trainess extension by selecting
+3. Using `about:debugging`, install your fathom-trainees extension by selecting
    its `addon/manifest.json` file.
 4. Install [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/).
 5. Navigate to a web page that has a modal dialog with a background overlay.
@@ -26,7 +26,7 @@ that finds the semi-transparent overlays behind in-page pop-ups:
 8. After you have labeled several pages like this, drag them from your
    filesystem into an empty Firefox window, being careful not to leave any
    empty tabs.
-9. From the main toolbar, select the FathomFox icon, then choose Trainer.
+9. From the main toolbar, click the FathomFox icon, then choose Trainer.
 10. Click "Train on the tabs in this window".
 
 ## Corpus Collector
