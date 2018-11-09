@@ -1,7 +1,7 @@
 let backgroundPort = browser.runtime.connect();
 
 function initPanel() {
-    // Initialise freeze-page button.
+    // Initialise freeze-page button:
     document.getElementById('freeze-button').addEventListener('click', () => {
         document.getElementById('freeze-button').disabled = true;
         document.getElementById('spinner-container').classList.remove('hidden');
@@ -16,16 +16,26 @@ function initPanel() {
             }).catch((e) => {
                 console.error(e);
             });
-
     });
 
-    // Initialise content-script.
+    // Init Show Misrecognized Element button:
+    document.getElementById('bad-button').addEventListener('click', async function showBad() {
+        const selector = await browser.runtime.sendMessage({type: 'getMisrecognized'});
+        const escapedSelector = selector.replace(/"/g, '\\"');
+        const js = 'inspect(document.querySelector("' + escapedSelector + '"))';
+        browser.devtools.inspectedWindow.eval(js)
+            .catch((e) => {
+                console.error(e);
+            });
+    });
+
+    // Initialise content-script:
     backgroundPort.postMessage({
         type: 'init',
         tabId: browser.devtools.inspectedWindow.tabId,
     });
 
-    // And initialise the UI.
+    // And initialise the UI:
     updateLabeled();
 }
 initPanel();

@@ -25,7 +25,6 @@ function connectADevPanel(port) {
                             browser.runtime.sendMessage({type: 'refresh'});
                         });
                 });
-
         } else {
             // Most requests are passed unmodified to the content script.
             await browser.tabs.sendMessage(request.tabId, request);
@@ -35,9 +34,11 @@ function connectADevPanel(port) {
 browser.runtime.onConnect.addListener(connectADevPanel);
 
 // Bridge between content and the devtools panel.
-browser.runtime.onMessage.addListener((request) => {
+browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'refresh') {
         browser.runtime.sendMessage({type: 'refresh'}).catch(() => {});
+    } else if (request.type === 'getMisrecognized') {
+        sendResponse('#landingImage');
     }
 });
 
