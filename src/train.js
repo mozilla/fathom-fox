@@ -226,12 +226,12 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
         }
         let div = gGoodBadDiv.firstElementChild;
         for (let sf of successesOrFailures) {
-            div.firstChild.textContent = sf.filename + ': tab ' + sf.tabId;
+            div.firstChild.textContent = sf.filename;
+            div.addEventListener('click', function focusTab() {
+                browser.tabs.update(sf.tabId, {active: true});
+            });
             div.setAttribute('class', sf.succeeded ? 'good' : 'bad');
             div = div.nextElementSibling;
-            if (!sf.succeeded) {
-                browser.tabs.update(sf.tabId, {active: true});
-            }
         }
     }
 }
