@@ -225,9 +225,18 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
             }
         }
         let div = gGoodBadDiv.firstElementChild;
+        const traineeId = document.getElementById('ruleset').value;
         for (let sf of successesOrFailures) {
             div.firstChild.textContent = sf.filename;
             div.addEventListener('click', function focusTab() {
+                if (!sf.succeeded) {
+                    browser.runtime.sendMessage(
+                        'fathomtrainees@mozilla.com',
+                        {type: 'labelBadElement',
+                         tabId: sf.tabId,
+                         traineeId,
+                         coeffs: bestSolution});
+                }
                 browser.tabs.update(sf.tabId, {active: true});
             });
             div.setAttribute('class', sf.succeeded ? 'good' : 'bad');
