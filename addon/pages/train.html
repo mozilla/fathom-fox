@@ -58,17 +58,27 @@
         grid-template-columns: repeat(8, 1fr);
       }
 
-      #goodBad>div {
+      #goodBad > div {
         text-align: center;
         padding: 3px;
       }
 
-      #goodBad>.good {
+      #goodBad > .good {
         background-color: rgb(173, 245, 175);
       }
 
-      #goodBad>.bad {
+      #goodBad > .bad {
         background-color: rgb(255, 174, 186);
+      }
+
+      #goodBad > .bad:hover {
+        background-color: rgb(225, 144, 156);
+        box-shadow: inset 0px 0px 3px 1px red;
+      }
+
+      #goodBad > .good:hover {
+        background-color: rgb(143, 215, 145);
+        box-shadow: inset 0px 0px 3px 1px green;
       }
     </style>
   </head>
