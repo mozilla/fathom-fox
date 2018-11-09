@@ -18,17 +18,6 @@ function initPanel() {
             });
     });
 
-    // Init Show Misrecognized Element button:
-    document.getElementById('bad-button').addEventListener('click', async function showBad() {
-        const selector = await browser.runtime.sendMessage({type: 'getMisrecognized'});
-        const escapedSelector = selector.replace(/"/g, '\\"');
-        const js = 'inspect(document.querySelector("' + escapedSelector + '"))';
-        browser.devtools.inspectedWindow.eval(js)
-            .catch((e) => {
-                console.error(e);
-            });
-    });
-
     // Initialise content-script:
     backgroundPort.postMessage({
         type: 'init',

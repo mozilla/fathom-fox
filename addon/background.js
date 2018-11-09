@@ -37,8 +37,6 @@ browser.runtime.onConnect.addListener(connectADevPanel);
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'refresh') {
         browser.runtime.sendMessage({type: 'refresh'}).catch(() => {});
-    } else if (request.type === 'getMisrecognized') {
-        sendResponse('#landingImage');
     }
 });
 
