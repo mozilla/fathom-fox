@@ -1,7 +1,7 @@
 let backgroundPort = browser.runtime.connect();
 
 function initPanel() {
-    // Initialise freeze-page button.
+    // Initialise freeze-page button:
     document.getElementById('freeze-button').addEventListener('click', () => {
         document.getElementById('freeze-button').disabled = true;
         document.getElementById('spinner-container').classList.remove('hidden');
@@ -16,16 +16,15 @@ function initPanel() {
             }).catch((e) => {
                 console.error(e);
             });
-
     });
 
-    // Initialise content-script.
+    // Initialise content-script:
     backgroundPort.postMessage({
         type: 'init',
         tabId: browser.devtools.inspectedWindow.tabId,
     });
 
-    // And initialise the UI.
+    // And initialise the UI:
     updateLabeled();
 }
 initPanel();
