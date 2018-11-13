@@ -229,15 +229,16 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
         for (let sf of successesOrFailures) {
             div.firstChild.textContent = sf.filename;
             div.addEventListener('click', function focusTab() {
-                if (!sf.succeeded) {
-                    browser.runtime.sendMessage(
-                        'fathomtrainees@mozilla.com',
-                        {type: 'labelBadElement',
-                         tabId: sf.tabId,
-                         traineeId,
-                         coeffs: bestSolution});
-                }
+                // Label the bad element if bad, clear it if good:
+                browser.runtime.sendMessage(
+                    'fathomtrainees@mozilla.com',
+                    {type: 'labelBadElement',
+                     tabId: sf.tabId,
+                     traineeId,
+                     coeffs: bestSolution});
                 browser.tabs.update(sf.tabId, {active: true});
+                // Update the Fathom dev tools panel if it's open:
+                browser.runtime.sendMessage({type: 'refresh'});
             });
             div.setAttribute('class', sf.succeeded ? 'good' : 'bad');
             div = div.nextElementSibling;
