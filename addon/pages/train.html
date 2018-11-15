@@ -4,17 +4,6 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
     <style type="text/css">
-      /* Otherwise, the button changes shape when it's disabled. */
-      button {
-        padding: 12px;
-      }
-
-      /* Don't let the button appear to click when disabled. */
-      button:disabled, button:disabled:hover#train {
-        border: none;
-        background-color: rgba(0, 0, 0, .06);
-      }
-
       .uiGrid {
           display: grid;
           grid-template-columns: 10em 30em;
@@ -27,7 +16,6 @@
       }
 
       .uiGrid select,
-      .uiGrid button,
       .uiGrid meter {
         width: 100%;
       }
@@ -80,6 +68,59 @@
         background-color: rgb(143, 215, 145);
         box-shadow: inset 0px 0px 3px 1px green;
       }
+
+      /* Button styles based on https://github.com/FirefoxUX/photon-extension-kit/blob/master/extension.css */
+      button.browser-style {
+        background-color: #fbfbfb;
+        border: 1px solid #b1b1b1;
+        box-shadow: 0 0 0 0 transparent;
+        font: caption;
+        height: 24px;
+        outline: 0 !important;
+        padding: 0 8px 0;
+        transition-duration: 250ms;
+        transition-property: box-shadow, border;
+      }
+
+      button.browser-style::-moz-focus-inner {
+        border: 0;
+        outline: 0;
+      }
+
+      button.browser-style:hover {
+        background-color: #ebebeb;
+        border: 1px solid #b1b1b1;
+      }
+
+      button.browser-style:active {
+        background-color: #d4d4d4;
+        border: 1px solid #858585;
+      }
+
+      button.browser-style:disabled {
+        color: #999;
+        opacity: .5;
+      }
+
+      button.browser-style:focus {
+        border-color: #fff;
+        box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+      }
+
+      button.browser-style:hover:not(:active):not(:disabled):not(:focus) {
+        background-color: #ebebeb;
+        border: 1px solid #b1b1b1;
+      }
+
+      button.browser-style:hover:active:not(:hover):not(:disabled):not(:focus) {
+        background-color: #d4d4d4;
+        border: 1px solid #858585;
+      }
+
+      button.browser-style:focus:not(:disabled) {
+        border-color: #fff !important;
+        box-shadow: 0 0 0 2px rgba(97, 181, 255, 0.75);
+      }
     </style>
   </head>
   <body class="browser-style" style="padding: 0 20px">
@@ -100,8 +141,8 @@
       <div>
       </div>
       <div>
-        <button type="button" id="train" class="panel-section-footer-button">Train on the tabs in this window</button>
-        <button type="button" id="pause" class="panel-section-footer-button">Pause</button>
+        <button type="button" id="train" class="browser-style">Train on the tabs in this window</button>
+        <button type="button" id="pause" class="browser-style" disabled="disabled">Pause</button>
       </div>
       <div>
       </div>
