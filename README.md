@@ -83,6 +83,16 @@ nth-root step to type finalization, will also be within (0, 1). Adding another
 rule to your ruleset will no longer blow through any numeric thresholds you had
 programmed in.
 
+During training, you can click the red "bad" cells to see which element was
+wrongly selected by the ruleset. Unfortunately, you need to manually show the
+dev tools and switch to the Fathom panel once you get to the page in question;
+there aren't yet web extension APIs to do it automatically. Once you do, you'll
+see a quick and dirty representation of the "bad" element: a new label called
+"BAD [the trainee ID]". Be sure to delete this if you choose to re-save the
+page for some reason. Also note that the BAD label is created only when the bad
+cell is clicked, for speed; if you navigate to the bad page manually, the label
+won't be there, or there might be an old label from a previous iteration.
+
 ## Tips
 
 * Before freezing pages with the Developer Tools panel, use Firefox's
@@ -109,6 +119,17 @@ Thanks to Treora for his excellent freeze-dry library!
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
 ## Version History
+
+### 2.3
+
+* Clicking a good/bad cell now takes you to that sample's tab and, in the case
+  of a bad cell, indicates which element was wrongly selected, which is
+  invaluable for debugging. Identifying the element requires a fathom-trainees
+  fork that pulls in Fathom 2.8. If you have a custom success function, you
+  must also add a third param to it and scribble a ``badElement`` property on
+  the received object.
+* Add a Pause button to the Trainer. This is useful while on battery power or
+  to take the load off Firefox's JS thread so the dev tools can run quickly.
 
 ### 2.2
 
