@@ -10,10 +10,6 @@
 import freezeDry from 'freeze-dry';
 
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 /**
  * Serialize this page and its resources into HTML, and return the HTML.
  */

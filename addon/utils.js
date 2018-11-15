@@ -63,3 +63,7 @@ async function setViewportSize(tab, width, height) {
 function urlFilename(url) {
     return url.substring(url.lastIndexOf('/') + 1, url.endsWith('.html') ? url.length - 5 : url.length)
 }
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

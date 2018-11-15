@@ -1,4 +1,4 @@
-let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gGoodBadDiv;
+let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gGoodBadDiv, gPausing = false;
 
 /**
  * Awaitable setDefault that stores Promise values, not the Promises
@@ -14,7 +14,11 @@ async function asyncSetDefault(map, key, asyncDefaultMaker) {
 }
 
 class Tuner {
-    constructor(tabs, traineeId, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
+    /**
+     * @arg isUnpaused Async function that returns only after we should stop
+     *     being paused
+     */
+    constructor(tabs, traineeId, isUnpaused, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
         this.INITIAL_TEMPERATURE = initialTemperature;
         this.COOLING_STEPS = coolingSteps;
         this.COOLING_FRACTION = coolingFraction;
@@ -23,6 +27,7 @@ class Tuner {
 
         this.tabs = tabs;
         this.traineeId = traineeId;
+        this.isUnpaused = isUnpaused;
     }
 
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
@@ -79,8 +84,11 @@ class Tuner {
                     }
                 }
                 n++;
+                await this.isUnpaused();
                 // Exit if we're not moving:
-                if (startCost === currentCost) { break; }
+                if (startCost === currentCost) {
+                    break;
+                }
             }
             temperature *= this.COOLING_FRACTION;
         }
@@ -150,10 +158,24 @@ class Tuner {
     }
 }
 
+async function sleepUntilUnpaused() {
+    while (gPausing) {
+        await sleep(500);
+    }
+}
+
+function pauseOrResume() {
+    gPausing = !gPausing;
+    document.getElementById('pause').disabled = gPausing;
+    document.getElementById('train').disabled = !gPausing;
+}
+
 async function trainOnTabs() {
     // Grey out Train button:
     const trainButton = document.getElementById('train');
     trainButton.disabled = true;
+    trainButton.onclick = pauseOrResume;
+    document.getElementById('pause').disabled = false;
 
     // Show progress bar and output.
     gProgressBar.classList.remove('hidden');
@@ -169,12 +191,14 @@ async function trainOnTabs() {
             {type: 'trainee',
              traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
-        const tuner = new Tuner(tabs, rulesetName);
+        const tuner = new Tuner(tabs, rulesetName, sleepUntilUnpaused);
         await tuner.anneal(updateProgress);
     } finally {
         // Restore UI state, leaving output visible.
         gProgressBar.classList.add('hidden');
         gProgressBar.setAttribute('value', 0);
+        trainButton.onclick = trainOnTabs;
+        document.getElementById('pause').disabled = true;
         trainButton.disabled = false;
     }
 }
@@ -269,6 +293,7 @@ async function initPage(document) {
     gCiDiv.appendChild(document.createTextNode(''));
 
     document.getElementById('train').onclick = trainOnTabs;
+    document.getElementById('pause').onclick = pauseOrResume;
 
     // Draw Ruleset menu:
     let traineeKeys;
