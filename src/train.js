@@ -158,10 +158,6 @@ class Tuner {
     }
 }
 
-async function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function sleepUntilUnpaused() {
     while (gPausing) {
         await sleep(500);
