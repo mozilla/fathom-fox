@@ -168,10 +168,18 @@ async function sleepUntilUnpaused() {
     }
 }
 
+function pauseOrResume() {
+    gPausing = !gPausing;
+    document.getElementById('pause').disabled = gPausing;
+    document.getElementById('train').disabled = !gPausing;
+}
+
 async function trainOnTabs() {
     // Grey out Train button:
     const trainButton = document.getElementById('train');
     trainButton.disabled = true;
+    trainButton.onclick = pauseOrResume;
+    document.getElementById('pause').disabled = false;
 
     // Show progress bar and output.
     gProgressBar.classList.remove('hidden');
@@ -193,6 +201,8 @@ async function trainOnTabs() {
         // Restore UI state, leaving output visible.
         gProgressBar.classList.add('hidden');
         gProgressBar.setAttribute('value', 0);
+        trainButton.onclick = trainOnTabs;
+        document.getElementById('pause').disabled = true;
         trainButton.disabled = false;
     }
 }
@@ -287,7 +297,7 @@ async function initPage(document) {
     gCiDiv.appendChild(document.createTextNode(''));
 
     document.getElementById('train').onclick = trainOnTabs;
-    document.getElementById('pause').onclick = function pauseOrResume() { gPausing = !gPausing; };
+    document.getElementById('pause').onclick = pauseOrResume;
 
     // Draw Ruleset menu:
     let traineeKeys;
