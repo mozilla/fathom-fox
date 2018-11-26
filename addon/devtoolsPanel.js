@@ -194,7 +194,7 @@ function updateLabeledTable(labeled) {
 
     const table = document.createElement('table');
     const headerRow = document.createElement('tr');
-    addTextCell(headerRow, 'Selector', true).classList.add('path');
+    addTextCell(headerRow, 'Selector (click to inspect)', true).classList.add('path');
     addTextCell(headerRow, 'Element', true).classList.add('preview');
     addTextCell(headerRow, 'Label', true).classList.add('label');
     addTextCell(headerRow, '').classList.add('action');
