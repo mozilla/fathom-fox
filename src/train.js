@@ -33,6 +33,10 @@ class Tuner {
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
     // What color is your function?
     async anneal(updateProgress) {
+        function mapToString(map) {
+            return Array.from(map.entries()).toString();
+        }
+
         console.time('Training');
         let temperature = this.INITIAL_TEMPERATURE;
         let currentSolution = await this.initialSolution();
@@ -47,20 +51,21 @@ class Tuner {
         let n = 0;
         let hits = 0, misses = 0;
         const seenSolutions = new Map();  // solution => cost
+        const startMillis = (new Date()).getTime();
         for (let i = 0; i < this.COOLING_STEPS; i++) {
-            //const startMillis = (new Date()).getMilliseconds();
-            //const solutionsPerSecond = 
             updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
             const startCost = currentCost;
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
                 let newSolution = this.randomTransition(currentSolution);
-                if (seenSolutions.has(newSolution.toString())) {
+                let cacheKey = mapToString(newSolution);
+                if (seenSolutions.has(cacheKey)) {
                     hits += 1;
                 } else {
                     misses += 1;
                 }
-                let newCost = await asyncSetDefault(seenSolutions, newSolution.toString(), () => this.solutionCost(newSolution));
+                let newCost = await asyncSetDefault(seenSolutions, cacheKey, () => this.solutionCost(newSolution));
 
+                console.log(newSolution, newCost);
                 if (newCost < currentCost) {
                     // Always take improvements.
                     currentCost = newCost;
@@ -84,6 +89,7 @@ class Tuner {
                     }
                 }
                 n++;
+                console.log('Uncached interations/second:', misses / (((new Date()).getTime() - startMillis) / 1000), ' Jumps:', m);
                 await this.isUnpaused();
                 // Exit if we're not moving:
                 if (startCost === currentCost) {
@@ -122,7 +128,7 @@ class Tuner {
             {type: 'rulesetSucceededOnTabs',
              tabIds: this.tabs.map(tab => tab.id),
              traineeId: this.traineeId,
-             coeffs});
+             coeffs: Array.from(coeffs.entries())});
     }
 
     async solutionCost(coeffs) {
@@ -135,18 +141,32 @@ class Tuner {
 
     /** Nudge a random coefficient in a random direction. */
     randomTransition(coeffs) {
+        const keys = Array.from(coeffs.keys());
+        let newValue, key;
+        do {
+            const index = Math.floor(Math.random() * keys.length);
+            key = keys[index];
+            const direction = Math.floor(Math.random() * 2) ? -1 : 1;
+            newValue = coeffs.get(key) + direction;
+        } while (newValue < 0);
+        coeffs.set(key, newValue);
+        return coeffs;
+    }
+
+    positiveInts(coeffs) {
         // It finds the optima really fast. It makes me want to try giving this
         // a larger space to work in, perhaps with non-integral values.
 
         // We don't nudge by a percentage of the current value because then we
         // never have any cache hits. Witness: x' := x + x*0.5. x' - x'*0.5 != x.
         const ret = coeffs.slice();
-        const element = Math.floor(Math.random() * coeffs.length);
-
-        // Make coeffs <1 possible. Someday, maybe make the nudges smaller when
-        // the value is less, because things go more exponential there.
-        const direction = Math.floor(Math.random() * 2) ? -1 : 1;
-        ret[element] += direction;
+        let newValue, element;
+        do {
+            element = Math.floor(Math.random() * coeffs.length);
+            const direction = Math.floor(Math.random() * 2) ? -1 : 1;
+            newValue = ret[element] + direction;
+        } while (newValue < 0);
+        ret[element] = newValue;
         return ret;
     }
 
