@@ -250,7 +250,11 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
     gProgressBar.setAttribute('value', ratio);
 
     // Update best coeffs and accuracy.
-    gCoeffsDiv.firstChild.textContent = `[${bestSolution}]`;
+    const bestCoeffs = [];
+    for (const [key, val] of bestSolution.entries()) {
+        bestCoeffs.push(`${key}: ${val}`);
+    }
+    gCoeffsDiv.firstChild.textContent = `[${bestCoeffs.join(', ')}]`;
     gAccuracyDiv.firstChild.textContent = percentify(1 - bestCost);
 
     if (successesOrFailures) {
