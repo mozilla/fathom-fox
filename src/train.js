@@ -50,22 +50,16 @@ class Tuner {
         let m = 0;
         let n = 0;
         let hits = 0, misses = 0;
-        const seenSolutions = new Map();  // solution => cost
         const startMillis = (new Date()).getTime();
         for (let i = 0; i < this.COOLING_STEPS; i++) {
             updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
             const startCost = currentCost;
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
                 let newSolution = this.randomTransition(currentSolution);
-                let cacheKey = mapToString(newSolution);
-                if (seenSolutions.has(cacheKey)) {
-                    hits += 1;
-                } else {
-                    misses += 1;
-                }
-                let newCost = await asyncSetDefault(seenSolutions, cacheKey, () => this.solutionCost(newSolution));
+                misses += 1;
+                let newCost = await this.solutionCost(newSolution);
 
-                console.log(newSolution, newCost);
+                //console.log(newSolution, newCost);
                 if (newCost < currentCost) {
                     // Always take improvements.
                     currentCost = newCost;
@@ -89,7 +83,11 @@ class Tuner {
                     }
                 }
                 n++;
-                console.log('Uncached interations/second:', misses / (((new Date()).getTime() - startMillis) / 1000), ' Jumps:', m);
+
+                // Both of these get slower and slower as we go. Maybe it's the cache? But it's slower even starting a new run without restarting Firefox.
+//                 console.log('Uncached interations/second:', misses / (((new Date()).getTime() - startMillis) / 1000), ' Jumps:', m);
+                //console.log('Total interations/second:', (misses + hits) / (((new Date()).getTime() - startMillis) / 1000));
+
                 await this.isUnpaused();
                 // Exit if we're not moving:
                 if (startCost === currentCost) {
@@ -141,6 +139,7 @@ class Tuner {
 
     /** Nudge a random coefficient in a random direction. */
     randomTransition(coeffs) {
+        //console.log(coeffs);
         const keys = Array.from(coeffs.keys());
         let newValue, key;
         do {
