@@ -1,4 +1,4 @@
-let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gGoodBadDiv, gPausing = false;
+let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gCostDiv, gGoodBadDiv, gPausing = false;
 
 /**
  * Awaitable setDefault that stores Promise values, not the Promises
@@ -73,7 +73,8 @@ class Tuner {
                                        await this.verboseSuccessReports(bestSolution));
                     }
                 } else {
-                    // Sometimes take non-improvements.
+                    // Sometimes take non-improvements. We're more likely to
+                    // take ones that aren't too much worse.
                     const minusDelta = currentCost - newCost;
                     const merit = Math.exp(minusDelta / (this.BOLTZMANNS * temperature));
                     if (merit > Math.random()) {
@@ -83,10 +84,6 @@ class Tuner {
                     }
                 }
                 n++;
-
-                // Both of these get slower and slower as we go. Maybe it's the cache? But it's slower even starting a new run without restarting Firefox.
-//                 console.log('Uncached interations/second:', misses / (((new Date()).getTime() - startMillis) / 1000), ' Jumps:', m);
-                //console.log('Total interations/second:', (misses + hits) / (((new Date()).getTime() - startMillis) / 1000));
 
                 await this.isUnpaused();
                 // Exit if we're not moving:
@@ -100,7 +97,6 @@ class Tuner {
         console.log('Iterations:', n, 'using', m, 'jumps.');
         console.log('Cache hits', hits, 'misses', misses);
         console.log('Cache hit rate', hits/(hits + misses));
-        return [bestSolution, bestCost];
     }
 
     /**
@@ -108,19 +104,22 @@ class Tuner {
      * allows us to show the user which element it found, for debugging.
      */
     async verboseSuccessReports(coeffs) {
-        return (await this.whetherTabsSucceeded(coeffs)).map((succeeded, i) => ({
-            succeeded,
+        return (await this.resultsForPages(coeffs)).map((result, i) => ({
+            didSucceed: result.didSucceed,
             filename: urlFilename(this.tabs[i].url),
             tabId: this.tabs[i].id}));
     }
 
     /**
      * Send a message to all the pages in the corpus, telling them "Run ruleset
-     * ID X, and tell me whether its default query (the one with the same out()
-     * key as its ID) was right or wrong." Do it by delegating to the FathomFox
-     * Rulesets webext, where user rulesets are developed.
+     * ID X, and tell me how its default query (the one with the same out() key
+     * as its ID) did." Do it by delegating to the Fathom Trainees webext,
+     * where user rulesets are developed.
+     *
+     * @return an Array of {didSucceed: bool, cost: number} objects, one per
+     *     page
      */
-    async whetherTabsSucceeded(coeffs) {
+    async resultsForPages(coeffs) {
         return await browser.runtime.sendMessage(
             'fathomtrainees@mozilla.com',
             {type: 'rulesetSucceededOnTabs',
@@ -130,11 +129,9 @@ class Tuner {
     }
 
     async solutionCost(coeffs) {
-        const attempts = await this.whetherTabsSucceeded(coeffs);
-        const numSuccesses = attempts.reduce((accum, value) => value ? accum + 1 : accum, 0);
-
-        // When all complete, combine for a total cost:
-        return (attempts.length - numSuccesses) / attempts.length;
+        const attempts = await this.resultsForPages(coeffs);
+        const totalCost = attempts.reduce((accum, value) => accum + value.cost, 0);
+        return totalCost;
     }
 
     /** Nudge a random coefficient in a random direction. */
@@ -255,11 +252,15 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
         bestCoeffs.push(`${key}: ${val}`);
     }
     gCoeffsDiv.firstChild.textContent = `[${bestCoeffs.join(', ')}]`;
-    gAccuracyDiv.firstChild.textContent = percentify(1 - bestCost);
+    gCostDiv.firstChild.textContent = Math.trunc(bestCost);
 
     if (successesOrFailures) {
+        // Compute and show accuracy:
+        const bestAccuracy = successesOrFailures.reduce((accum, sf) => accum + sf.didSucceed, 0) / successesOrFailures.length;
+        gAccuracyDiv.firstChild.textContent = percentify(bestAccuracy);
+
         // Draw CI readout:
-        const [ciLow, ciHigh] = confidenceInterval(1 - bestCost, successesOrFailures.length);
+        const [ciLow, ciHigh] = confidenceInterval(bestAccuracy, successesOrFailures.length);
         gCiDiv.firstChild.textContent = `${percentify(ciLow)} - ${percentify(ciHigh)}`;
 
         // Draw good/bad chart:
@@ -287,7 +288,7 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
                 // Update the Fathom dev tools panel if it's open:
                 browser.runtime.sendMessage({type: 'refresh'});
             });
-            div.setAttribute('class', sf.succeeded ? 'good' : 'bad');
+            div.setAttribute('class', sf.didSucceed ? 'good' : 'bad');
             div = div.nextElementSibling;
         }
     }
@@ -302,18 +303,21 @@ async function initPage(document) {
     gCoeffsDiv = document.getElementById('coeffs');
     gAccuracyDiv = document.getElementById('accuracy');
     gCiDiv = document.getElementById('ci');
+    gCostDiv = document.getElementById('cost');
     gGoodBadDiv = document.getElementById('goodBad');
 
     // Initialise elements to a known state.
     empty(gCoeffsDiv);
     empty(gAccuracyDiv);
     empty(gCiDiv);
+    empty(gCostDiv);
     empty(gGoodBadDiv);
 
     // Create a text node in coeffs and accuracy once, rather than on each update.
     gCoeffsDiv.appendChild(document.createTextNode(''));
     gAccuracyDiv.appendChild(document.createTextNode(''));
     gCiDiv.appendChild(document.createTextNode(''));
+    gCostDiv.appendChild(document.createTextNode(''));
 
     document.getElementById('train').onclick = trainOnTabs;
     document.getElementById('pause').onclick = pauseOrResume;
