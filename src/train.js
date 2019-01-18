@@ -49,14 +49,11 @@ class Tuner {
                        await this.verboseSuccessReports(bestSolution));
         let m = 0;
         let n = 0;
-        let hits = 0, misses = 0;
-        const startMillis = (new Date()).getTime();
         for (let i = 0; i < this.COOLING_STEPS; i++) {
             updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
             const startCost = currentCost;
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
                 let newSolution = this.randomTransition(currentSolution);
-                misses += 1;
                 let newCost = await this.solutionCost(newSolution);
 
                 //console.log(newSolution, newCost);
@@ -95,8 +92,6 @@ class Tuner {
         }
         console.timeEnd('Training');
         console.log('Iterations:', n, 'using', m, 'jumps.');
-        console.log('Cache hits', hits, 'misses', misses);
-        console.log('Cache hit rate', hits/(hits + misses));
     }
 
     /**
