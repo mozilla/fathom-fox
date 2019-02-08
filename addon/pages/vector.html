@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="chrome://browser/content/extension.css">
+    <style>
+      body {
+        padding: 0 20px;
+      }
+      #options {
+        float: right;
+        padding-right: 10px;
+      }
+      #options div {
+        text-align: right;
+      }
+      #options input[type="text"] {
+        text-align: right;
+      }
+      #status li.error {
+        color: darkred;
+      }
+    </style>
+  </head>
+  <body class="browser-style">
+    <h1>Vectorizer</h1>
+    <p>
+      This turns a series of frozen, labeled pages into feature vectors for use with an external machine-learning system. The feature vectors land in a file in your usual downloads folder.
+    </p>
+    <label for="pages">Enter the pages to vectorize, one per line:</label>
+    <textarea id="pages" placeholder="http://127.0.0.1:8000/1.html
+http://127.0.0.1:8000/2.html" rows=10 class="browser-style"></textarea>
+    <form id="vectorizeForm">
+      <button id="vectorize" disabled>Vectorize</button>
+      <div id="options">
+        <div>
+          <label title="Resize the window so the viewport is this big.">
+            Viewport Size:
+            <input type="text" required pattern="[0-9]+" size="4" id="viewportWidth" value="1024">
+            ×
+            <input type="text" required pattern="[0-9]+" size="4" id="viewportHeight" value="768">
+          </label>
+        </div>
+      </div>
+    </form>
+    <ul id="status"></ul>
+    <script src="../download.js"></script>
+    <script src="../utils.js"></script>
+    <script src="../vector.js"></script>
+  </body>
+</html>

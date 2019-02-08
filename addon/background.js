@@ -43,9 +43,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // Update devtools panel when tab navigates to new page.
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
     if (tabInfo.status === 'complete') {
-        browser.runtime.sendMessage({type: 'init'})
-            .catch((error) => {
-                console.error(error)
-            });
+//         browser.runtime.sendMessage({type: 'init'})
+//             .catch((error) => {
+//                 console.error(error)
+//             });
     }
 });
