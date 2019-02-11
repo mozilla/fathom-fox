@@ -2,6 +2,7 @@ let gUrls;  // Array of [filename, url] to freeze.
 let gUrlIndex;  // Pointer to current url in gUrls.
 let gFreezeOptions; // Freeze-dry options from UI.
 let gTimeout; // Load+Freeze timeout from UI.
+let gViewportWidth, gViewportHeight;
 
 async function freezeAllPages(event) {
     event.preventDefault();
