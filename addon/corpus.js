@@ -74,7 +74,7 @@ async function freezeAllPages(event) {
             // Freeze this page.
             document.dispatchEvent(new CustomEvent(
                 'fathom:freeze',
-                {detail: {windowId: windowId, timer: timer}}
+                {detail: {windowId: windowId, timer: timer, tabId: tab.id}}
             ));
         }
     }
@@ -87,9 +87,9 @@ async function freezeAllPages(event) {
 }
 document.getElementById('freeze').onclick = freezeAllPages;
 
-function fathomNext(event) {
-    // Load next tab from gUrls, or close the window if we're done.
 
+// Load next tab from gUrls, or close the window if we're done.
+function fathomNext(event) {
     const windowId = event.detail;
 
     gUrlIndex++;
@@ -99,22 +99,22 @@ function fathomNext(event) {
         return;
     }
 
-    // Create a new tab with the current url, always as tab[0].
+    // Create a new tab with the current url.
     // The tabs.onUpdated handler in freezeAllPages() will dispatch a fathom:freeze
     // event when the tab has completed loading.
     setCurrentStatus({message: 'loading'});
     browser.tabs.create({
         windowId: windowId,
-        index: 0,
         url: gUrls[gUrlIndex].url,
     });
 }
 document.addEventListener('fathom:next', fathomNext, false);
 
+// A page to be frozen has finished loading. Serialize it.
 async function fathomFreeze(event) {
     const windowId = event.detail.windowId;
     const timer = event.detail.timer;
-    const tab = (await browser.tabs.query({windowId}))[0];
+    const tab = (await browser.tabs.get(event.detail.tabId));
 
     setCurrentStatus({message: 'freezing'});
     try {
