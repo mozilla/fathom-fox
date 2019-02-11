@@ -36,6 +36,7 @@ async function freezeAllPages(event) {
         if (
             tab.windowId !== windowId ||
             tab.url === 'about:blank' ||
+            tab.url === 'about:newtab' ||
             tab.status !== 'complete'
         ) {
             return;
