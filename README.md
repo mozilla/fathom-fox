@@ -120,6 +120,12 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 2.3.1
+
+* Fix Corpus Collector spewing extra bullet points, closing the wrong tabs,
+  downloading duplicates, and generally misbehaving in recent Firefox versions
+  (e.g. 65).
+
 ### 2.3
 
 * Clicking a good/bad cell now takes you to that sample's tab and, in the case
