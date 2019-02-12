@@ -3,6 +3,7 @@ let gUrlIndex;  // Pointer to current url in gUrls.
 let gFreezeOptions; // Freeze-dry options from UI.
 let gTimeout; // Load+Freeze timeout from UI.
 let gViewportWidth, gViewportHeight;
+let gTabUpdateListener;
 
 async function freezeAllPages(event) {
     event.preventDefault();
@@ -81,6 +82,7 @@ async function freezeAllPages(event) {
             ));
         }
     }
+    gTabUpdateListener = onUpdated;
     browser.tabs.onUpdated.addListener(onUpdated);
 
     // Make freezing host window, and set its size. The blank page acts as a
@@ -97,6 +99,9 @@ function fathomNext(event) {
 
     gUrlIndex++;
     if (gUrlIndex >= gUrls.length) {
+        // Do final cleanup.
+        browser.tabs.onUpdated.removeListener(gTabUpdateListener);
+        gTabUpdateListener = undefined;
         browser.windows.remove(windowId);
         document.getElementById('freeze').disabled = false;
         return;
