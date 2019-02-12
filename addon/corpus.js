@@ -28,13 +28,12 @@ async function freezeAllPages(event) {
     }
 
     document.getElementById('freeze').disabled = true;
-    let windowId = 0;
+    let windowId = 'uninitialized window ID';
 
     // Listen for tab events before we start creating tabs; this avoids race
     // conditions between creating tabs and waiting for loading to complete.
     async function onUpdated(tabId, changeInfo, tab) {
-        if (
-            tab.windowId !== windowId ||
+        if (tab.windowId !== windowId ||
             tab.url === 'about:blank' ||
             tab.url === 'about:newtab' ||
             tab.status !== 'complete'
@@ -42,16 +41,20 @@ async function freezeAllPages(event) {
             return;
         }
 
-        if (tab.url.startsWith('moz-extension://')) {
-            // The blank placeholder page has loaded.
-            // Set its viewport size to a standard dimension.
-            await setViewportSize(tab, gViewportWidth, gViewportHeight);
-            // The start the freezing process.
-            document.dispatchEvent(new CustomEvent(
-                'fathom:next',
-                {detail: windowId}
-            ));
-
+        if (tab.url.startsWith('moz-extension://')) {  // /pages/blank.html
+            if (changeInfo.status === 'complete') {  // Avoid the several other spurious update events that fire on blank.html.
+                // The blank placeholder page has loaded. Set its viewport size to
+                // a standard dimension. This is done as part of onUpdated()
+                // because calling executeScript() (within setViewportSize) before
+                // the tab is fully ready leads to an error. See
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1397667.
+                await setViewportSize(tab, gViewportWidth, gViewportHeight);
+                // The start the freezing process.
+                document.dispatchEvent(new CustomEvent(
+                    'fathom:next',
+                    {detail: windowId}
+                ));
+            }
         } else {
             // Tab that needs to be frozen has loaded.
 
@@ -140,6 +143,10 @@ async function fathomFreeze(event) {
 
         setCurrentStatus({message: 'downloaded as ' + download_filename, isFinal: true});
     } catch (e) {
+        // Beware: control flow can pass from the very end of the `try` block
+        // above to here, for example when "Message manager disconnected"
+        // happens in a tab we just froze. This is the motivation behind the
+        // isFinal option of setCurrentStatus().
         console.error(tab.url, e.message);
         // When the tab is closed while things are processing we get errors that
         // are less than informative and require rewriting to be grokable.
@@ -187,7 +194,9 @@ function setCurrentStatus({message, isFinal=false, isError=false}) {
     }
 
     emptyElement(li);
-    li.appendChild(document.createTextNode(gUrls[gUrlIndex].url + ': ' + message));
+    const urlObject = gUrls[gUrlIndex];
+    const url = (urlObject === undefined) ? 'no URL' : urlObject.url;  // 'no URL' should never happen but comes in handy when avoiding the out-of-bound array access error when debugging this sprawling state machine.
+    li.appendChild(document.createTextNode(url + ': ' + message));
     if (isError) {
         li.classList.add('error');
     } else {
