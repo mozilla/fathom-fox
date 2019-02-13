@@ -22,6 +22,8 @@ class CorpusCollector extends PageVisitor {
         if (options.urls.length === 0) {
             return undefined;
         }
+
+        options.otherOptions = {'traineeId': this.doc.getElementById('ruleset').value};
         return options;
     }
 
@@ -31,7 +33,7 @@ class CorpusCollector extends PageVisitor {
             'fathomtrainees@mozilla.com',
             {type: 'vectorizeTab',
              tabId: tab.id,
-             traineeId: 'price'});  // TODO: don't hard code
+             traineeId: this.otherOptions.traineeId});
 
         // Save vector to disk. TODO: collect vectors and save all in one file.
         let download_filename = await download(JSON.stringify(vector),
