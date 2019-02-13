@@ -67,3 +67,28 @@ function urlFilename(url) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+async function initRulesetMenu(goButton) {
+    // Draw Ruleset menu:
+    let traineeKeys;
+    try {
+        traineeKeys = await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {type: 'traineeKeys'});
+    } catch (e) {
+        // Fathom Trainees webext is absent.
+        traineeKeys = [];
+    }
+    const menu = document.getElementById('ruleset');
+    if (traineeKeys.length) {
+        for (const traineeKey of traineeKeys) {
+            const option = document.createElement('option');
+            option.text = option.value = traineeKey;
+            menu.add(option);
+        }
+    } else {
+        goButton.disabled = true;
+        menu.disabled = true;
+        document.getElementById('please-install').classList.remove('hidden');
+    }
+}

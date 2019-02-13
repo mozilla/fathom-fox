@@ -317,29 +317,7 @@ async function initPage(document) {
     document.getElementById('train').onclick = trainOnTabs;
     document.getElementById('pause').onclick = pauseOrResume;
 
-    // Draw Ruleset menu:
-    let traineeKeys;
-    try {
-        traineeKeys = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'traineeKeys'});
-    } catch (e) {
-        // Fathom Trainees webext is absent.
-        traineeKeys = [];
-    }
-    const menu = document.getElementById('ruleset');
-    if (traineeKeys.length) {
-        for (const traineeKey of traineeKeys) {
-            const option = document.createElement('option');
-            option.text = option.value = traineeKey;
-            menu.add(option);
-        }
-    } else {
-        const trainButton = document.getElementById('train');
-        trainButton.disabled = true;
-        menu.disabled = true;
-        document.getElementById('please-install').classList.remove('hidden');
-    }
+    initRulesetMenu(document.getElementById('train'));
 }
 
 initPage(document);
