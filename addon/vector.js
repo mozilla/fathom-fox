@@ -1,4 +1,8 @@
 class CorpusCollector extends PageVisitor {
+    constructor(document) {
+        super(document);
+    }
+
     formOptions() {
         const options = {};
 
@@ -34,12 +38,17 @@ class CorpusCollector extends PageVisitor {
             {type: 'vectorizeTab',
              tabId: tab.id,
              traineeId: this.otherOptions.traineeId});
+        this._vectors.push(vector);
+        this.setCurrentStatus({message: 'vectorized', isFinal: true});
+    }
 
-        // Save vector to disk. TODO: collect vectors and save all in one file.
-        let download_filename = await download(JSON.stringify(vector),
-                                               {filename: 'vectors.json'});
+    processAtBeginningOfRun() {
+        this._vectors = [];
+    }
 
-        this.setCurrentStatus({message: 'vectorized as ' + download_filename, isFinal: true});
+    async processAtEndOfRun() {
+        // Save vectors to disk.
+        await download(JSON.stringify(this._vectors), {filename: 'vectors.json'});
     }
 }
 

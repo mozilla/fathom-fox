@@ -38,6 +38,8 @@ class PageVisitor {
     }
 
     async visitAllPages(event) {
+        this.processAtBeginningOfRun();
+
         const visitor = this;
         event.preventDefault();
 
@@ -56,7 +58,6 @@ class PageVisitor {
         this.doc.getElementById('freeze').disabled = true;
         let windowId = 'uninitialized window ID';
         this.urlIndex = -1;
-        
 
         // Listen for tab events before we start creating tabs; this avoids race
         // conditions between creating tabs and waiting for loading to complete.
@@ -118,12 +119,13 @@ class PageVisitor {
     }
 
     // Load next tab from this.urls, or close the window if we're done.
-    next(event) {
+    async next(event) {
         const windowId = event.detail;
 
         this.urlIndex++;
         if (this.urlIndex >= this.urls.length) {
             // Do final cleanup.
+            await this.processAtEndOfRun();
             browser.tabs.onUpdated.removeListener(this.tabUpdateListener);
             this.tabUpdateListener = undefined;
             browser.windows.remove(windowId);
@@ -184,12 +186,21 @@ class PageVisitor {
         ));
     }
 
+    // This runs before the first visited page is loaded.
+    processAtBeginningOfRun() {
+    }
+
     // Do per-tab stuff that should be subject to the timeout.
     async processWithinTimeout(tab) {
     }
 
-    // Do per-tab stuff that should happen after the timeout is disabled.
-    async processWithoutTimeout(html) {
+    // Do per-tab stuff that should happen after the timeout is disabled. This
+    // gets passed the result of processWithinTimeout().
+    async processWithoutTimeout(result) {
+    }
+
+    // This runs after the last page is processed.
+    async processAtEndOfRun() {
     }
 
     setCurrentStatus({message, isFinal=false, isError=false}) {
