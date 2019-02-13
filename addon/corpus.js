@@ -54,6 +54,32 @@ class CorpusCollector extends PageVisitor {
         }
         return options;
     }
+
+    async processWithinTimeout(tab) {
+        // Inject dispatcher to listen to the message we then send. Can't get a
+        // return value directly out of the content script because webpack
+        // wraps our top-level stuff in a function. Instead, we use messaging.
+        await browser.tabs.executeScript(
+            tab.id,
+            {file: '/contentScript.js'}
+        );
+
+        // Call freeze-dry to fetch html.
+        const html = await browser.tabs.sendMessage(
+            tab.id,
+            {type: 'freeze', options: {wait: this.otherOptions.wait,
+                                       shouldScroll: this.otherOptions.shouldScroll}}
+        );
+        return html;
+    }
+
+    async processWithoutTimeout(html) {
+        // Save html to disk.
+        const filename = this.urls[this.urlIndex].filename;
+        const download_filename = await download(html, {filename});
+
+        this.setCurrentStatus({message: 'downloaded as ' + download_filename, isFinal: true});
+    }
 }
 
 const collector = new CorpusCollector(document);

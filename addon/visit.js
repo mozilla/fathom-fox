@@ -142,7 +142,7 @@ class PageVisitor {
         });
     }
 
-    // A page to be frozen has finished loading. Serialize it.
+    // A page to be frozen has finished loading. Do something to it.
     async visitPage(event) {
         const windowId = event.detail.windowId;
         const timer = event.detail.timer;
@@ -150,28 +150,14 @@ class PageVisitor {
 
         this.setCurrentStatus({message: 'freezing'});
         try {
-            // Can't get a return value out of the content script because webpack wraps
-            // our top-level stuff in a function. Instead, we use messaging.
-            await browser.tabs.executeScript(
-                tab.id,
-                {file: '/contentScript.js'}
-            );
+            // Stuff that is subject to the timeout:
+            const result = await this.processWithinTimeout(tab);
 
-            // Call freeze-dry to fetch html.
-            const html = await browser.tabs.sendMessage(
-                tab.id,
-                {type: 'freeze', options: {wait: this.otherOptions.wait,
-                                           shouldScroll: this.otherOptions.shouldScroll}}
-            );
-
-            // Clear timeout here so we don't bail out while writing to disk.
+            // Clear timeout here so we don't bail out while writing to disk:
             clearTimeout(timer);
 
-            // Save html to disk.
-            const filename = this.urls[this.urlIndex].filename;
-            const download_filename = await download(html, {filename});
-
-            this.setCurrentStatus({message: 'downloaded as ' + download_filename, isFinal: true});
+            // Stuff that happens after the timeout is disabled:
+            await this.processWithoutTimeout(result);
         } catch (e) {
             // Beware: control flow can pass from the very end of the `try` block
             // above to here, for example when "Message manager disconnected"
