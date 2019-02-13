@@ -15,7 +15,7 @@ class PageVisitor {
     // }
 
     constructor(document) {
-        this.urls =[];  // Array of [filename, url] to freeze
+        this.urls =[];  // Array of {filename, url} to visit
         this.urlIndex = undefined;  // index of current URL in this.urls
         this.timeout = undefined;
         this.viewportWidth = undefined;
@@ -86,10 +86,9 @@ class PageVisitor {
             } else {
                 // Tab that needs to be frozen has loaded.
 
-                // Set up the timeout; this covers both the page load and freeze time.
-                const timer = setTimeout(freezeTimeout, visitor.timeout * 1000);
-                async function freezeTimeout() {
-                    // Timeout.
+                // Set up the timeout; this covers both the page load and processing time.
+                const timer = setTimeout(timeout, visitor.timeout * 1000);
+                async function timeout() {
                     console.error(tab.url, 'timeout');
                     clearTimeout(timer);
                     visitor.setCurrentStatus({message: 'timeout', isFinal: true, isError: true});
@@ -102,7 +101,7 @@ class PageVisitor {
                     ));
                 }
 
-                // Freeze this page.
+                // Process this page.
                 visitor.doc.dispatchEvent(new CustomEvent(
                     'fathom:visitPage',
                     {detail: {windowId: windowId, timer: timer, tabId: tab.id}}
@@ -150,13 +149,11 @@ class PageVisitor {
 
         this.setCurrentStatus({message: 'freezing'});
         try {
-            // Stuff that is subject to the timeout:
             const result = await this.processWithinTimeout(tab);
 
             // Clear timeout here so we don't bail out while writing to disk:
             clearTimeout(timer);
 
-            // Stuff that happens after the timeout is disabled:
             await this.processWithoutTimeout(result);
         } catch (e) {
             // Beware: control flow can pass from the very end of the `try` block
@@ -185,6 +182,14 @@ class PageVisitor {
             'fathom:next',
             {detail: windowId}
         ));
+    }
+
+    // Do per-tab stuff that should be subject to the timeout.
+    async processWithinTimeout(tab) {
+    }
+
+    // Do per-tab stuff that should happen after the timeout is disabled.
+    async processWithoutTimeout(html) {
     }
 
     setCurrentStatus({message, isFinal=false, isError=false}) {

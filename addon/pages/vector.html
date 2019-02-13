@@ -20,18 +20,35 @@
       #status li.error {
         color: darkred;
       }
+      p.warning {
+        background-color: #FFFFBE;
+        border: 1px solid #FFE446;
+        padding: 1em;
+      }
+      .hidden {
+        display: none;
+      }
     </style>
   </head>
   <body class="browser-style">
     <h1>Vectorizer</h1>
+    <p id="please-install" class="warning hidden">
+      No rulesets found. Please install a “trainee” web extension containing your rulesets. For an example, see <a href="https://github.com/mozilla/fathom-trainees">Fathom Trainees</a>.
+    </p>
     <p>
       This turns a series of frozen, labeled pages into feature vectors for use with an external machine-learning system. The feature vectors land in a file in your usual downloads folder.
     </p>
+    <div class="label">
+      <label for="ruleset">Ruleset:</label>
+    </div>
+    <div>
+      <select id="ruleset"></select>
+    </div>
     <label for="pages">Enter the pages to vectorize, one per line:</label>
     <textarea id="pages" placeholder="http://127.0.0.1:8000/1.html
 http://127.0.0.1:8000/2.html" rows=10 class="browser-style"></textarea>
     <form id="vectorizeForm">
-      <button id="vectorize" disabled>Vectorize</button>
+      <button id="freeze" disabled>Vectorize</button>
       <div id="options">
         <div>
           <label title="Resize the window so the viewport is this big.">
@@ -46,6 +63,7 @@ http://127.0.0.1:8000/2.html" rows=10 class="browser-style"></textarea>
     <ul id="status"></ul>
     <script src="../download.js"></script>
     <script src="../utils.js"></script>
+    <script src="../visit.js"></script>
     <script src="../vector.js"></script>
   </body>
 </html>
