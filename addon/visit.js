@@ -59,6 +59,12 @@ class PageVisitor {
         let windowId = 'uninitialized window ID';
         this.urlIndex = -1;
 
+        // onUpdated, even with all its guard conditions, still fires twice for
+        // every page. Perhaps it fires the second time after the content
+        // scripts get added? Anyway, this sentry variable keeps us from
+        // actually processing a page twice.
+        let mostRecentTabIdUpdated = undefined;
+
         // Listen for tab events before we start creating tabs; this avoids race
         // conditions between creating tabs and waiting for loading to complete.
         async function onUpdated(tabId, changeInfo, tab) {
@@ -66,7 +72,7 @@ class PageVisitor {
                 tab.url === 'about:blank' ||
                 tab.url === 'about:newtab' ||
                 tab.status !== 'complete' ||
-                changeInfo.status !== 'complete'  // Avoid the several other spurious update events that fire on every page.
+                changeInfo.status !== 'complete'  // Avoid the several other update events about things like "attention" that fire on every page.
             ) {
                 return;
             }
@@ -86,26 +92,30 @@ class PageVisitor {
             } else {
                 // Tab that needs to be frozen has loaded.
 
-                // Set up the timeout; this covers both the page load and processing time.
-                const timer = setTimeout(timeout, visitor.timeout * 1000);
-                async function timeout() {
-                    console.error(tab.url, 'timeout');
-                    clearTimeout(timer);
-                    visitor.setCurrentStatus({message: 'timeout', isFinal: true, isError: true});
+                if (mostRecentTabIdUpdated !== tabId) {  // We haven't processed this one already.
+                    mostRecentTabIdUpdated = tabId;
 
-                    // Close the tab and process the next url.
-                    await browser.tabs.remove(tab.id);
+                    // Set up the timeout; this covers both the page load and processing time.
+                    const timer = setTimeout(timeout, visitor.timeout * 1000);
+                    async function timeout() {
+                        console.error(tab.url, 'timeout');
+                        clearTimeout(timer);
+                        visitor.setCurrentStatus({message: 'timeout', isFinal: true, isError: true});
+
+                        // Close the tab and process the next url.
+                        await browser.tabs.remove(tab.id);
+                        visitor.doc.dispatchEvent(new CustomEvent(
+                            'fathom:next',
+                            {detail: windowId}
+                        ));
+                    }
+
+                    // Process this page.
                     visitor.doc.dispatchEvent(new CustomEvent(
-                        'fathom:next',
-                        {detail: windowId}
+                        'fathom:visitPage',
+                        {detail: {windowId: windowId, timer: timer, tabId: tab.id}}
                     ));
                 }
-
-                // Process this page.
-                visitor.doc.dispatchEvent(new CustomEvent(
-                    'fathom:visitPage',
-                    {detail: {windowId: windowId, timer: timer, tabId: tab.id}}
-                ));
             }
         }
         this.tabUpdateListener = onUpdated;
