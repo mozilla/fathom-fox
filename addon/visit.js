@@ -65,25 +65,24 @@ class PageVisitor {
             if (tab.windowId !== windowId ||
                 tab.url === 'about:blank' ||
                 tab.url === 'about:newtab' ||
-                tab.status !== 'complete'
+                tab.status !== 'complete' ||
+                changeInfo.status !== 'complete'  // Avoid the several other spurious update events that fire on every page.
             ) {
                 return;
             }
 
-            if (tab.url.startsWith('moz-extension://')) {  // /pages/blank.html
-                if (changeInfo.status === 'complete') {  // Avoid the several other spurious update events that fire on blank.html.
-                    // The blank placeholder page has loaded. Set its viewport size to
-                    // a standard dimension. This is done as part of onUpdated()
-                    // because calling executeScript() (within setViewportSize) before
-                    // the tab is fully ready leads to an error. See
-                    // https://bugzilla.mozilla.org/show_bug.cgi?id=1397667.
-                    await setViewportSize(tab, visitor.viewportWidth, visitor.viewportHeight);
-                    // The start the freezing process.
-                    visitor.doc.dispatchEvent(new CustomEvent(
-                        'fathom:next',
-                        {detail: windowId}
-                    ));
-                }
+            if (tab.url.startsWith('moz-extension://')) {
+                // The blank placeholder page has loaded. Set its viewport size to
+                // a standard dimension. This is done as part of onUpdated()
+                // because calling executeScript() (within setViewportSize) before
+                // the tab is fully ready leads to an error. See
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1397667.
+                await setViewportSize(tab, visitor.viewportWidth, visitor.viewportHeight);
+                // The start the freezing process.
+                visitor.doc.dispatchEvent(new CustomEvent(
+                    'fathom:next',
+                    {detail: windowId}
+                ));
             } else {
                 // Tab that needs to be frozen has loaded.
 
