@@ -34,19 +34,28 @@ class CorpusCollector extends PageVisitor {
     async processWithinTimeout(tab) {
         // Have fathom-trainees vectorize the page:
         let vector = undefined;
+        let tries = 0;
         while (vector === undefined) {
             try {
+                tries++;
                 vector = await browser.runtime.sendMessage(
                     'fathomtrainees@mozilla.com',
                     {type: 'vectorizeTab',
                      tabId: tab.id,
                      traineeId: this.otherOptions.traineeId});
-            } catch {
-                await sleep(1000);
+            } catch (error) {
+                if (tries >= 10) {
+                    this.setCurrentStatus({message: 'failed: ' + error, isError: true, isFinal: true});
+                    break;
+                } else {
+                    await sleep(1000);
+                }
             }
         }
-        this._vectors.push(vector);
-        this.setCurrentStatus({message: 'vectorized', isFinal: true});
+        if (vector !== undefined) {
+            this._vectors.push(vector);
+            this.setCurrentStatus({message: 'vectorized', isFinal: true});
+        }
     }
 
     processAtBeginningOfRun() {
