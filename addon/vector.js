@@ -27,7 +27,10 @@ class CorpusCollector extends PageVisitor {
             return undefined;
         }
 
-        options.otherOptions = {'traineeId': this.doc.getElementById('ruleset').value};
+        options.otherOptions = {
+            'traineeId': this.doc.getElementById('ruleset').value,
+            'wait': parseInt(this.doc.getElementById('wait').value)
+        };
         return options;
     }
 
@@ -38,13 +41,17 @@ class CorpusCollector extends PageVisitor {
         while (vector === undefined) {
             try {
                 tries++;
+                await sleep(this.otherOptions.wait * 1000);
                 vector = await browser.runtime.sendMessage(
                     'fathomtrainees@mozilla.com',
                     {type: 'vectorizeTab',
                      tabId: tab.id,
                      traineeId: this.otherOptions.traineeId});
             } catch (error) {
-                if (tries >= 10) {
+                // We often get a "receiving end does not exist", even though
+                // the receiver is a background script that should always be
+                // registered. The error goes away on retrying.
+                if (tries >= 10) {  // 3 is not enough.
                     this.setCurrentStatus({message: 'failed: ' + error, isError: true, isFinal: true});
                     break;
                 } else {

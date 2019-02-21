@@ -51,6 +51,10 @@ http://127.0.0.1:8000/2.html" rows=10 class="browser-style"></textarea>
       <button id="freeze" disabled>Vectorize</button>
       <div id="options">
         <div>
+          <label for="wait" title="Wait this long before vectorizing the page. Sometimes this provides the necessary time for stylesheets to apply, for instance.">Delay:</label>
+          <input type="text" required pattern="[0-9]+" min="0" size="2" id="wait" value="1"> sec
+        </div>
+        <div>
           <label title="Resize the window so the viewport is this big.">
             Viewport Size:
             <input type="text" required pattern="[0-9]+" size="4" id="viewportWidth" value="1024">
