@@ -120,6 +120,21 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 3.0
+
+* Switch to Fathom 3. This requires a fathom-trainees fork based on tag 3.0 or
+  later. Equivalently, you can make these changes:
+  * Switch to specifying coefficients as a Map instead of an Array. If you
+    don't want to name your rules, Fathom will auto-name them `_0`, `_1`, etc.,
+    in order of appearance in the ruleset.
+  * The `rulesetMaker` function no longer takes any params. In Fathom 3, all
+    weighting is done internal to the framework.
+  * All rules should return a value between 0 and 1, representing a confidence.
+* Add the Vectorizer tool, which exports feature vectors for optimization with
+  Fathom 3's external tool.
+* Fix additional causes of duplicate downloads when using the Corpus Collector
+  on recent versions of Firefox. I think they're really all gone now.
+
 ### 2.3.1
 
 * Fix Corpus Collector spewing extra bullet points, closing the wrong tabs,
