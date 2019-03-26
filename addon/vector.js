@@ -70,8 +70,23 @@ class CorpusCollector extends PageVisitor {
     }
 
     async processAtEndOfRun() {
+        const trainee = await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {type: 'trainee',
+             traineeId: this.otherOptions.traineeId});
+
         // Save vectors to disk.
-        await download(JSON.stringify(this._vectors), {filename: 'vectors.json'});
+        await download(JSON.stringify(
+                {
+                    header: {
+                        version: 1,
+                        featureNames: Array.from(trainee.coeffs.keys())
+                    },
+                    pages: this._vectors
+                }
+            ),
+            {filename: 'vectors.json'}
+        );
     }
 }
 
