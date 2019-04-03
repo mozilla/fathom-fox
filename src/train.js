@@ -32,11 +32,7 @@ class Tuner {
 
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
     // What color is your function?
-    async anneal(updateProgress) {
-        function mapToString(map) {
-            return Array.from(map.entries()).toString();
-        }
-
+    async anneal(updateProgress, onlyOneStep) {
         console.time('Training');
         let temperature = this.INITIAL_TEMPERATURE;
         let currentSolution = await this.initialSolution();
@@ -47,6 +43,9 @@ class Tuner {
                        bestSolution,
                        bestCost,
                        await this.verboseSuccessReports(bestSolution));
+        if (onlyOneStep === true) {  // Sometimes this is unintentionally <unavailable> or some other godforsaken truthy value.
+            return;
+        }
         let m = 0;
         let n = 0;
         for (let i = 0; i < this.COOLING_STEPS; i++) {
@@ -55,8 +54,6 @@ class Tuner {
             for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
                 let newSolution = this.randomTransition(currentSolution);
                 let newCost = await this.solutionCost(newSolution);
-
-                //console.log(newSolution, newCost);
                 if (newCost < currentCost) {
                     // Always take improvements.
                     currentCost = newCost;
@@ -131,7 +128,6 @@ class Tuner {
 
     /** Nudge a random coefficient in a random direction. */
     randomTransition(coeffs) {
-        //console.log(coeffs);
         const keys = Array.from(coeffs.keys());
         let newValue, key;
         do {
@@ -181,11 +177,13 @@ function pauseOrResume() {
     document.getElementById('train').disabled = !gPausing;
 }
 
-async function trainOnTabs() {
+async function trainOnTabs(onlyOneStep) {
     // Grey out Train button:
     const trainButton = document.getElementById('train');
     trainButton.disabled = true;
     trainButton.onclick = pauseOrResume;
+    const oneStepButton = document.getElementById('onlyOneStep');
+    oneStepButton.disabled = true;
     document.getElementById('pause').disabled = false;
 
     // Show progress bar and output.
@@ -203,7 +201,7 @@ async function trainOnTabs() {
              traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
         const tuner = new Tuner(tabs, rulesetName, sleepUntilUnpaused);
-        await tuner.anneal(updateProgress);
+        await tuner.anneal(updateProgress, onlyOneStep);
     } finally {
         // Restore UI state, leaving output visible.
         gProgressBar.classList.add('hidden');
@@ -211,6 +209,7 @@ async function trainOnTabs() {
         trainButton.onclick = trainOnTabs;
         document.getElementById('pause').disabled = true;
         trainButton.disabled = false;
+        oneStepButton.disabled = false;
     }
 }
 
@@ -314,7 +313,8 @@ async function initPage(document) {
     gCiDiv.appendChild(document.createTextNode(''));
     gCostDiv.appendChild(document.createTextNode(''));
 
-    document.getElementById('train').onclick = trainOnTabs;
+    document.getElementById('train').onclick = () => trainOnTabs(false);
+    document.getElementById('onlyOneStep').onclick = () => trainOnTabs(true);
     document.getElementById('pause').onclick = pauseOrResume;
 
     initRulesetMenu(document.getElementById('train'));
