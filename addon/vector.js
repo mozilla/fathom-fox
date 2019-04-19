@@ -13,14 +13,14 @@ class CorpusCollector extends PageVisitor {
         options.timeout = 9999;  // effectively none
 
         // Load each url line-by-line from the textarea.
-        // If a line contains a space, the first word will be used as the filename.
+        const prefix = this.doc.getElementById('baseUrl').value;
         options.urls = this.doc
             .getElementById('pages')
             .value
             .split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0)
-            .map(line => ({filename: undefined, url: line}));
+            .map(line => ({filename: undefined, url: prefix + line}));
 
         // We need at least one url.
         if (options.urls.length === 0) {

@@ -14,7 +14,7 @@
       #options div {
         text-align: right;
       }
-      #options input[type="text"] {
+      #options input[class="number"] {
         text-align: right;
       }
       #status li.error {
@@ -45,22 +45,26 @@
       <select id="ruleset"></select>
     </div>
     <label for="pages">Enter the pages to vectorize, one per line:</label>
-    <textarea id="pages" placeholder="http://127.0.0.1:8000/1.html
-http://127.0.0.1:8000/2.html" rows=10 class="browser-style"></textarea>
+    <textarea id="pages" placeholder="1.html
+2.html" rows=10 class="browser-style"></textarea>
     <form id="vectorizeForm">
       <button id="freeze" disabled>Vectorize</button>
       <div id="options">
         <div>
           <label for="wait" title="Wait this long before vectorizing the page. Sometimes this provides the necessary time for stylesheets to apply, for instance.">Delay:</label>
-          <input type="text" required pattern="[0-9]+" min="0" size="2" id="wait" value="1"> sec
+          <input class="number" type="text" required pattern="[0-9]+" min="0" size="2" id="wait" value="1"> sec
         </div>
         <div>
           <label title="Resize the window so the viewport is this big.">
             Viewport Size:
-            <input type="text" required pattern="[0-9]+" size="4" id="viewportWidth" value="1024">
+            <input class="number" type="text" required pattern="[0-9]+" size="4" id="viewportWidth" value="1024">
             ×
-            <input type="text" required pattern="[0-9]+" size="4" id="viewportHeight" value="768">
+            <input class="number" type="text" required pattern="[0-9]+" size="4" id="viewportHeight" value="768">
           </label>
+        </div>
+        <div>
+          <label for="baseUrl" title="This gets prepended to each page title to make a URL.">Base URL:</label>
+          <input type="text" size="30" id="baseUrl" value="http://127.0.0.1:8000/training/">
         </div>
         <div>
           <input type="checkbox" id="retryOnError" checked="checked">
