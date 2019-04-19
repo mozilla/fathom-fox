@@ -28,8 +28,9 @@ class CorpusCollector extends PageVisitor {
         }
 
         options.otherOptions = {
-            'traineeId': this.doc.getElementById('ruleset').value,
-            'wait': parseInt(this.doc.getElementById('wait').value)
+            traineeId: this.doc.getElementById('ruleset').value,
+            wait: parseInt(this.doc.getElementById('wait').value),
+            retryOnError: this.doc.getElementById('retryOnError').checked
         };
         return options;
     }
@@ -38,6 +39,7 @@ class CorpusCollector extends PageVisitor {
         // Have fathom-trainees vectorize the page:
         let vector = undefined;
         let tries = 0;
+        const maxTries = this.otherOptions.retryOnError ? 10 : 1;
         while (vector === undefined) {
             try {
                 tries++;
@@ -51,7 +53,7 @@ class CorpusCollector extends PageVisitor {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
                 // registered. The error goes away on retrying.
-                if (tries >= 10) {  // 3 is not enough.
+                if (tries >= maxTries) {  // 3 is not enough.
                     this.setCurrentStatus({message: 'failed: ' + error, isError: true, isFinal: true});
                     break;
                 } else {

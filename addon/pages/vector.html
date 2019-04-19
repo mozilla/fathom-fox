@@ -62,6 +62,10 @@ http://127.0.0.1:8000/2.html" rows=10 class="browser-style"></textarea>
             <input type="text" required pattern="[0-9]+" size="4" id="viewportHeight" value="768">
           </label>
         </div>
+        <div>
+          <input type="checkbox" id="retryOnError" checked="checked">
+          <label for="retryOnError" title="If there is an error in the ruleset or in in-browser communication, retry up to 10 times.">Retry on Error</label>
+        </div>
       </div>
     </form>
     <ul id="status"></ul>
