@@ -5,29 +5,39 @@ rulesets within Firefox
 
 ## Quick Start
 
-Here is an example of how you might use FathomFox to train a Fathom ruleset
+Here is an example of how you might use FathomFox to develop a Fathom ruleset
 that finds the semi-transparent overlays behind in-page pop-ups:
 
 1. Fork, clone, and install the
    [Fathon-Trainees](https://github.com/mozilla/fathom-trainees/) repository as
    per its instructions.
 2. Install dependencies and build with `yarn build`, then run `yarn browser` to
-   launch Firefox.  `yarn install` (or just `yarn`) will fail with an error
-   about an incompatible node version, use `yarn build` to install modules, or
-   pass the `--ignore-engines` switch to `yarn install`.
+   launch Firefox. (`yarn install` (or just `yarn`) will fail with an error
+   about an incompatible node version, so be sure to use `yarn build` to
+   install modules, or pass the `--ignore-engines` switch to `yarn install`.)
 3. Using `about:debugging`, install your fathom-trainees extension by selecting
    its `addon/manifest.json` file.
 4. Install [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/).
-5. Navigate to a web page that has a modal dialog with a background overlay.
-6. Using Firefox's developer tools inspector, select the full-page overlay
-   element.
+5. Navigate to a web page that has what you're trying to recognize: a
+   background overlay behind a modal dialog.
+6. Using Firefox's developer tools inspector, select the overlay element.
 7. Switch to the Fathom developer tools tab, enter "overlay" in the label
    field, and click Save Page.
-8. After you have labeled several pages like this, drag them from your
-   filesystem into an empty Firefox window, being careful not to leave any
-   empty tabs.
-9. From the main toolbar, click the FathomFox icon, then choose Trainer.
-10. Click "Train on the tabs in this window".
+8. After you have labeled about 20 pages like this, click the FathomFox icon in
+   the main toolbar, and choose Vectorizer.
+9. Use the Vectorizer to mash down your labeled pages into vectors of floats
+   and save them as a JSON file.
+10. [Use the commandline
+    trainer](https://mozilla.github.io/fathom/training.html#running-the-trainer) to
+    imbibe the vectors and come up with an optimal set of coefficients.
+
+## Where Your Ruleset Goes
+
+So that you don't have to fork FathomFox itself, the ruleset you're developing
+goes into a second web extension that you author, the so-called "trainee"
+extension. An example is [Fathom
+Trainees](https://github.com/mozilla/fathom-trainees), which you can fork. See
+its readme for more.
 
 ## Corpus Collector
 
@@ -42,7 +52,7 @@ hundreds of pages at once, but it doesn't give you the opportunity to stop and
 interact with each (though it can scroll to the bottom or wait a predetermined
 time before freezing).
 
-## The Developer Tools Panel
+## Developer Tools Panel
 
 Fathom is a supervised-learning system. FathomFox's Developer Tools panel helps
 you do the supervision (labeling) of pages that have been bulk-collected. You
@@ -59,47 +69,50 @@ is a limit of one label per element at the moment. Finally, click Save Page to
 pull down a frozen version of the page. That sample is then ready to be used
 with the Trainer.
 
-## The Trainer
+## Vectorizer
 
-Also reachable from the toolbar button is the ruleset trainer. Once you have
-collected a few dozen sample pages, labeled the interesting elements, and
-sketched out a ruleset, this automatically derives coefficients that deliver
-the most accuracy. Basically, you open the Trainer and then drag a pile of
-samples into the same Firefox window; the Trainer will then try your ruleset
-against all those tabs, working through different sets of coefficients until an
-optimum is reached.
+Once you've labeled your corpus, you'll need a file of feature vectors you can
+feed to the trainer.
 
-So that you don't have to fork FathomFox itself, your rulesets go into a second
-webextension that you author, the so-called "trainee" extension. An example is
-[Fathom Trainees](https://github.com/mozilla/fathom-trainees). See its readme
-for more.
+1. Open the Vectorizer from FathomFox's toolbar button. 
+2. Give the Vectorizer a list of your labeled pages' filenames.
+3. Change the Base URL to the address from which you're serving the pages.
+4. Click Vectorize, the pages will flash by, and the vectors will appear in
+   your Downloads folder.
 
-For now, the Trainer's transition function is hard-coded to try integral
-values, even negative ones. This was chosen to work well with rulesets that
-keep their scores within the fuzzy-logic range of (0, 1). This carries the dual
-advantages of giving each score an intuitive interpretation as a probability
-and making types more composable, since the composition, once we add a future
-nth-root step to type finalization, will also be within (0, 1). Adding another
-rule to your ruleset will no longer blow through any numeric thresholds you had
-programmed in.
+The Retry on Error checkbox should generally stay on, to work around apparently
+unavoidable spurious errors in the web extension communication APIs. However,
+turn it off during ruleset debugging; that way, you can see your actual
+mistakes more promptly.
 
-During training, you can click the red "bad" cells to see which element was
-wrongly selected by the ruleset. Unfortunately, you need to manually show the
-dev tools and switch to the Fathom panel once you get to the page in question;
-there aren't yet web extension APIs to do it automatically. Once you do, you'll
-see a quick and dirty representation of the "bad" element: a new label called
-"BAD [the trainee ID]". Be sure to delete this if you choose to re-save the
-page for some reason. Also note that the BAD label is created only when the bad
-cell is clicked, for speed; if you navigate to the bad page manually, the label
-won't be there, or there might be an old label from a previous iteration.
+## Trainer
+
+The actual training functionality of the FathomFox Trainer is deprecated in
+favor of the much more efficient [commandline
+tool](https://mozilla.github.io/fathom/training.html#running-the-trainer), but
+its Evaluate function is still useful for debugging.
+
+Once you have a decent set of coefficients and biases computed, sub them into
+your ruleset, open some troublesome pages in a Firefox window, and invoke the
+FathomFox Trainer. From there, click Evaluate to run the ruleset over the
+loaded tabs. Any pages with misrecognized nodes will show up in red; click
+those to see which element was wrongly selected. Unfortunately, you need to
+manually show the dev tools and switch to the Fathom panel once you get to the
+page in question; there aren't yet web extension APIs to do it automatically.
+Once you do, you'll see a quick and dirty representation of the "bad" element:
+a new label called "BAD [the trainee ID]". Be sure to delete this if you choose
+to re-save the page for some reason. Also note that the BAD label is created
+only when the bad cell is clicked, for speed; if you navigate to the bad page
+manually, the label won't be there, or there might be an old label from a
+previous iteration.
 
 ## Tips
 
 * Before freezing pages with the Developer Tools panel, use Firefox's
   Responsive Design mode (command-option-M) to set a repeatable 1024x768 window
-  size. The Trainer automatically sets this same size during training (by
-  default). This will ensure that the proper CSS (which may be driven by media
-  queries) will be frozen (and later reloaded) with the page.
+  size. The Vectorizer automatically sets this same size by default. This will
+  ensure that the proper CSS (which may be driven by media queries) will be
+  frozen (and later reloaded) with the page.
 * For maximum fidelity, do your corpus capture in a clean copy of Firefox with
   no other add-ons. Some ad blockers will make changes to the DOM, like adding
   style attributes to ad iframes to hide them.
@@ -113,12 +126,21 @@ Thanks to Treora for his excellent freeze-dry library!
 1. Install Firefox Nightly or Firefox Developer Edition.
 2. Check out the source code.
 3. `cd fathom-fox`
-4. Install dependencies: `yarn install --ignore-engines` (note `npm` will not
-   work as it chooses different dependencies).
+4. Install dependencies: `yarn install --ignore-engines`. (Note that `npm` will
+   not work, as it chooses different dependencies.)
 5. Bundle up the extension, and launch a new copy of Nightly with it already
    installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
 ## Version History
+
+### 3.1
+
+* Add an Evaluate button to the Trainer, useful for ruleset debugging.
+* Add a Base URL field to the Vectorizer, which saves a lot of
+  find-and-replacing on page filenames.
+* Add a Retry On Error checkbox to the Vectorizer so retrying can be disabled
+  during ruleset debugging.
+* Document Vectorizer.
 
 ### 3.0
 
@@ -131,7 +153,7 @@ Thanks to Treora for his excellent freeze-dry library!
     weighting is done internal to the framework.
   * All rules should return a value between 0 and 1, representing a confidence.
 * Add the Vectorizer tool, which exports feature vectors for optimization with
-  Fathom 3's external tool.
+  Fathom 3's commandline tool.
 * Fix additional causes of duplicate downloads when using the Corpus Collector
   on recent versions of Firefox. I think they're really all gone now.
 
