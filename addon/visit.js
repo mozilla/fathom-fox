@@ -11,7 +11,7 @@ class PageVisitor {
      *     invalid or contains no URLs, return undefined instead.
      */
     // formOptions() {
-    // 
+    //
     // }
 
     constructor(document) {
@@ -49,9 +49,15 @@ class PageVisitor {
         }
         this.urls = options.urls;
         this.timeout = options.timeout;
-        this.viewportWidth = options.viewportWidth;
-        this.viewportHeight = options.viewportHeight;
         this.otherOptions = options.otherOptions;
+
+        const trainee = await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {type: 'trainee',
+                traineeId: this.otherOptions.traineeId});
+
+        this.viewportHeight = trainee.viewportSize.height;
+        this.viewportWidth = trainee.viewportSize.width;
 
         emptyElement(document.getElementById('status'));
 

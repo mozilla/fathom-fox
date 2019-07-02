@@ -7,9 +7,6 @@ class CorpusCollector extends PageVisitor {
         const options = {};
 
         // Initialize options from the form.
-        options.viewportWidth = parseInt(this.doc.getElementById('viewportWidth').value);
-        options.viewportHeight = parseInt(this.doc.getElementById('viewportHeight').value);
-
         options.timeout = 9999;  // effectively none
 
         // Load each url line-by-line from the textarea.
