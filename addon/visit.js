@@ -51,13 +51,16 @@ class PageVisitor {
         this.timeout = options.timeout;
         this.otherOptions = options.otherOptions;
 
-        const trainee = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-                traineeId: this.otherOptions.traineeId});
-
-        this.viewportHeight = trainee.viewportSize.height;
-        this.viewportWidth = trainee.viewportSize.width;
+        // If the subclass's form does not provide the viewport size, it should
+        // have a method to provide that information in a different way.
+        if (options.hasOwnProperty('viewportHeight')) {
+            this.viewportHeight = options.viewportHeight;
+            this.viewportWidth = options.viewportWidth;
+        } else {
+            const viewportSize = await this.getViewportHeightAndWidth();
+            this.viewportHeight = viewportSize.height;
+            this.viewportWidth = viewportSize.width;
+        }
 
         emptyElement(document.getElementById('status'));
 
@@ -216,6 +219,11 @@ class PageVisitor {
 
     // This runs after the last page is processed.
     async processAtEndOfRun() {
+    }
+
+    // This is used to get the viewport size if it is not in the PageVisitor's form.
+    async getViewportHeightAndWidth() {
+
     }
 
     setCurrentStatus({message, isFinal=false, isError=false}) {

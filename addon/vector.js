@@ -29,7 +29,21 @@ class CorpusCollector extends PageVisitor {
             wait: parseInt(this.doc.getElementById('wait').value),
             retryOnError: this.doc.getElementById('retryOnError').checked
         };
+
         return options;
+    }
+
+    async getViewportHeightAndWidth() {
+        // Pull the viewport size from the loaded trainee.
+        const trainee = await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {type: 'trainee',
+                traineeId: this.otherOptions.traineeId});
+
+        return {
+            'height': trainee.viewportSize.height,
+            'width': trainee.viewportSize.width
+        }
     }
 
     async processWithinTimeout(tab) {
