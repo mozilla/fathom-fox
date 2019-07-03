@@ -38,7 +38,7 @@ class CorpusCollector extends PageVisitor {
         const trainee = await browser.runtime.sendMessage(
             'fathomtrainees@mozilla.com',
             {type: 'trainee',
-                traineeId: this.otherOptions.traineeId});
+            traineeId: this.otherOptions.traineeId});
 
         return {
             'height': trainee.viewportSize.height,
