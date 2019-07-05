@@ -7,9 +7,6 @@ class CorpusCollector extends PageVisitor {
         const options = {};
 
         // Initialize options from the form.
-        options.viewportWidth = parseInt(this.doc.getElementById('viewportWidth').value);
-        options.viewportHeight = parseInt(this.doc.getElementById('viewportHeight').value);
-
         options.timeout = 9999;  // effectively none
 
         // Load each url line-by-line from the textarea.
@@ -32,7 +29,21 @@ class CorpusCollector extends PageVisitor {
             wait: parseInt(this.doc.getElementById('wait').value),
             retryOnError: this.doc.getElementById('retryOnError').checked
         };
+
         return options;
+    }
+
+    async getViewportHeightAndWidth() {
+        // Pull the viewport size from the loaded trainee.
+        const trainee = await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {type: 'trainee',
+             traineeId: this.otherOptions.traineeId});
+
+        return {
+            height: trainee.viewportSize.height,
+            width: trainee.viewportSize.width
+        }
     }
 
     async processWithinTimeout(tab) {
