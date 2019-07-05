@@ -41,8 +41,8 @@ class CorpusCollector extends PageVisitor {
             traineeId: this.otherOptions.traineeId});
 
         return {
-            'height': trainee.viewportSize.height,
-            'width': trainee.viewportSize.width
+            height: trainee.viewportSize.height,
+            width: trainee.viewportSize.width
         }
     }
 

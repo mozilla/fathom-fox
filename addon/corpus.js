@@ -12,8 +12,6 @@ class CorpusCollector extends PageVisitor {
             wait: parseFloat(this.doc.getElementById('wait').value),
             shouldScroll: this.doc.getElementById('shouldScroll').checked,
         };
-        options.viewportWidth = parseInt(this.doc.getElementById('viewportWidth').value);
-        options.viewportHeight = parseInt(this.doc.getElementById('viewportHeight').value);
 
         // Note we extend the timeout by the freeze delay.
         options.timeout = parseFloat(this.doc.getElementById('timeout').value) + options.otherOptions.wait;
@@ -53,6 +51,13 @@ class CorpusCollector extends PageVisitor {
             return undefined;
         }
         return options;
+    }
+
+    async getViewportHeightAndWidth() {
+        return {
+            height: parseInt(this.doc.getElementById('viewportHeight').value),
+            width: parseInt(this.doc.getElementById('viewportWidth').value)
+        }
     }
 
     async processWithinTimeout(tab) {

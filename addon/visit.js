@@ -5,10 +5,10 @@ class PageVisitor {
     /**
      * Return a collection of user input from the form.
      *
-     * @return {urls, timeout, viewportWidth, viewportHeight, otherOptions}, where
-     *     `otherOptions` is an object encapsulating options specific to the
-     *     PageVisitor subclass, opaque to the superclass. If the form data is
-     *     invalid or contains no URLs, return undefined instead.
+     * @return {urls, timeout, otherOptions}, where `otherOptions` is an
+     *     object encapsulating options specific to the PageVisitor subclass,
+     *     opaque to the superclass. If the form data is invalid or contains
+     *     no URLs, return undefined instead.
      */
     // formOptions() {
     //
@@ -51,16 +51,9 @@ class PageVisitor {
         this.timeout = options.timeout;
         this.otherOptions = options.otherOptions;
 
-        // If the subclass's form does not provide the viewport size, it should
-        // have a method to provide that information in a different way.
-        if (options.hasOwnProperty('viewportHeight')) {
-            this.viewportHeight = options.viewportHeight;
-            this.viewportWidth = options.viewportWidth;
-        } else {
-            const viewportSize = await this.getViewportHeightAndWidth();
-            this.viewportHeight = viewportSize.height;
-            this.viewportWidth = viewportSize.width;
-        }
+        const viewportSize = await this.getViewportHeightAndWidth();
+        this.viewportHeight = viewportSize.height;
+        this.viewportWidth = viewportSize.width;
 
         emptyElement(document.getElementById('status'));
 
@@ -221,7 +214,7 @@ class PageVisitor {
     async processAtEndOfRun() {
     }
 
-    // This is used to get the viewport size if it is not in the PageVisitor's form.
+    // This is used to get the viewport size.
     async getViewportHeightAndWidth() {
 
     }
