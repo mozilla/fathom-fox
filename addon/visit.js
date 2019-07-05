@@ -2,18 +2,6 @@
 // them
 
 class PageVisitor {
-    /**
-     * Return a collection of user input from the form.
-     *
-     * @return {urls, timeout, otherOptions}, where `otherOptions` is an
-     *     object encapsulating options specific to the PageVisitor subclass,
-     *     opaque to the superclass. If the form data is invalid or contains
-     *     no URLs, return undefined instead.
-     */
-    // formOptions() {
-    //
-    // }
-
     constructor(document) {
         this.urls =[];  // Array of {filename, url} to visit
         this.urlIndex = undefined;  // index of current URL in this.urls
@@ -214,9 +202,21 @@ class PageVisitor {
     async processAtEndOfRun() {
     }
 
+    /**
+     * Return a collection of user input from the form.
+     *
+     * @return {urls, timeout, otherOptions}, where `otherOptions` is an
+     *     object encapsulating options specific to the PageVisitor subclass,
+     *     opaque to the superclass. If the form data is invalid or contains
+     *     no URLs, return undefined instead.
+     */
+    formOptions() {
+        throw new Error('You must implement formOptions()')
+    }
+
     // This is used to get the viewport size.
     async getViewportHeightAndWidth() {
-
+        throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
     setCurrentStatus({message, isFinal=false, isError=false}) {
