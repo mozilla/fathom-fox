@@ -74,7 +74,21 @@ class CorpusCollector extends PageVisitor {
         }
         if (vector !== undefined) {
             this._vectors.push(vector);
-            this.setCurrentStatus({message: 'vectorized', isFinal: true});
+
+            // Check if any of the rules didn't run or returned null.
+            // This presents as an undefined value in a feature vector.
+            if (vector.nodes.some(
+                node => node.features.some(
+                    feature => feature === undefined
+                )
+            )) {
+                this.setCurrentStatus({
+                    message: 'warning: null values in vector. one or more rules returned null',
+                    isFinal: true
+                });
+            } else {
+                this.setCurrentStatus({message: 'vectorized', isFinal: true});
+            }
         }
     }
 
