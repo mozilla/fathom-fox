@@ -77,17 +77,35 @@ class CorpusCollector extends PageVisitor {
 
             // Check if any of the rules didn't run or returned null.
             // This presents as an undefined value in a feature vector.
-            if (vector.nodes.some(
-                node => node.features.some(
-                    feature => feature === undefined
-                )
-            )) {
+            const nullFeatures = await this.nullFeatures(vector.nodes);
+            if (nullFeatures) {
+                console.log(nullFeatures);
                 this.setCurrentStatus({
-                    message: 'warning: null values in vector. one or more rules returned null',
+                    message: 'warning: rule(s) ' + nullFeatures + ' returned null values',
                     isFinal: true
                 });
             } else {
                 this.setCurrentStatus({message: 'vectorized', isFinal: true});
+            }
+        }
+    }
+
+    async nullFeatures(nodes) {
+        for (const node of nodes) {
+            if (node.features.some(featureValue => featureValue === undefined)) {
+                // TODO: Should we get the feature names elsewhere so we don't have to make this async call multiple times?
+                const trainee = await browser.runtime.sendMessage(
+                    'fathomtrainees@mozilla.com',
+                    {type: 'trainee', traineeId: this.otherOptions.traineeId},
+                );
+                const featureNames = Array.from(trainee.coeffs.keys());
+
+                return node.features.reduce((nullFeatures, featureValue, index) => {
+                    if (featureValue === undefined) {
+                        nullFeatures.push(featureNames[index]);
+                    }
+                    return nullFeatures;
+                }, []);
             }
         }
     }
