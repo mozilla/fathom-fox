@@ -81,7 +81,7 @@ class CorpusCollector extends PageVisitor {
             if (nullFeatures) {
                 console.log(nullFeatures);
                 this.setCurrentStatus({
-                    message: 'warning: rule(s) ' + nullFeatures + ' returned null values',
+                    message: 'failed: rule(s) ' + nullFeatures + ' returned null values',
                     isFinal: true
                 });
             } else {
