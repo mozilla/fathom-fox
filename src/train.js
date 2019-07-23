@@ -1,94 +1,17 @@
-let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gCostDiv, gGoodBadDiv, gPausing = false;
-
-/**
- * Awaitable setDefault that stores Promise values, not the Promises
- * themselves, in the map
- */
-async function asyncSetDefault(map, key, asyncDefaultMaker) {
-    if (map.has(key)) {
-        return map.get(key);
-    }
-    const defaultValue = await asyncDefaultMaker();
-    map.set(key, defaultValue);
-    return defaultValue;
-}
+let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gCostDiv, gGoodBadDiv = false;
 
 class Tuner {
-    /**
-     * @arg isUnpaused Async function that returns only after we should stop
-     *     being paused
-     */
-    constructor(tabs, traineeId, isUnpaused, initialTemperature = 5000, coolingSteps = 5000, coolingFraction = .95, stepsPerTemp = 1000) {
-        this.INITIAL_TEMPERATURE = initialTemperature;
-        this.COOLING_STEPS = coolingSteps;
-        this.COOLING_FRACTION = coolingFraction;
-        this.STEPS_PER_TEMP = stepsPerTemp;
-        this.BOLTZMANNS = 1.3806485279e-23;
-
+    constructor(tabs, traineeId) {
         this.tabs = tabs;
         this.traineeId = traineeId;
-        this.isUnpaused = isUnpaused;
     }
 
     // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
     // What color is your function?
-    async anneal(updateProgress, onlyOneStep) {
-        console.time('Training');
-        let temperature = this.INITIAL_TEMPERATURE;
-        let currentSolution = await this.initialSolution();
-        let bestSolution = currentSolution;
-        let currentCost = await this.solutionCost(currentSolution);
-        let bestCost = currentCost;
-        updateProgress(0,
-                       bestSolution,
-                       bestCost,
-                       await this.verboseSuccessReports(bestSolution));
-        if (onlyOneStep === true) {  // Sometimes this is unintentionally <unavailable> or some other godforsaken truthy value.
-            return;
-        }
-        let m = 0;
-        let n = 0;
-        for (let i = 0; i < this.COOLING_STEPS; i++) {
-            updateProgress(i / this.COOLING_STEPS, bestSolution, bestCost);
-            const startCost = currentCost;
-            for (let j = 0; j < this.STEPS_PER_TEMP; j++) {
-                let newSolution = this.randomTransition(currentSolution);
-                let newCost = await this.solutionCost(newSolution);
-                if (newCost < currentCost) {
-                    // Always take improvements.
-                    currentCost = newCost;
-                    currentSolution = newSolution;
-                    if (newCost < bestCost) {
-                        bestCost = newCost;
-                        bestSolution = newSolution;
-                        updateProgress(i / this.COOLING_STEPS,
-                                       bestSolution,
-                                       bestCost,
-                                       await this.verboseSuccessReports(bestSolution));
-                    }
-                } else {
-                    // Sometimes take non-improvements. We're more likely to
-                    // take ones that aren't too much worse.
-                    const minusDelta = currentCost - newCost;
-                    const merit = Math.exp(minusDelta / (this.BOLTZMANNS * temperature));
-                    if (merit > Math.random()) {
-                        m++;
-                        currentCost = newCost;
-                        currentSolution = newSolution;
-                    }
-                }
-                n++;
-
-                await this.isUnpaused();
-                // Exit if we're not moving:
-                if (startCost === currentCost) {
-                    break;
-                }
-            }
-            temperature *= this.COOLING_FRACTION;
-        }
-        console.timeEnd('Training');
-        console.log('Iterations:', n, 'using', m, 'jumps.');
+    async anneal(updateProgress) {
+        let solution = await this.initialSolution();
+        let cost = await this.solutionCost(solution);
+        updateProgress(0, solution, cost, await this.verboseSuccessReports(solution));
     }
 
     /**
@@ -122,39 +45,7 @@ class Tuner {
 
     async solutionCost(coeffs) {
         const attempts = await this.resultsForPages(coeffs);
-        const totalCost = attempts.reduce((accum, value) => accum + value.cost, 0);
-        return totalCost;
-    }
-
-    /** Nudge a random coefficient in a random direction. */
-    randomTransition(coeffs) {
-        const keys = Array.from(coeffs.keys());
-        let newValue, key;
-        do {
-            const index = Math.floor(Math.random() * keys.length);
-            key = keys[index];
-            const direction = Math.floor(Math.random() * 2) ? -1 : 1;
-            newValue = coeffs.get(key) + direction;
-        } while (newValue < 0);
-        coeffs.set(key, newValue);
-        return coeffs;
-    }
-
-    positiveInts(coeffs) {
-        // It finds the optima really fast. It makes me want to try giving this
-        // a larger space to work in, perhaps with non-integral values.
-
-        // We don't nudge by a percentage of the current value because then we
-        // never have any cache hits. Witness: x' := x + x*0.5. x' - x'*0.5 != x.
-        const ret = coeffs.slice();
-        let newValue, element;
-        do {
-            element = Math.floor(Math.random() * coeffs.length);
-            const direction = Math.floor(Math.random() * 2) ? -1 : 1;
-            newValue = ret[element] + direction;
-        } while (newValue < 0);
-        ret[element] = newValue;
-        return ret;
+        return attempts.reduce((accum, value) => accum + value.cost, 0);
     }
 
     async initialSolution() {
@@ -165,26 +56,10 @@ class Tuner {
     }
 }
 
-async function sleepUntilUnpaused() {
-    while (gPausing) {
-        await sleep(500);
-    }
-}
-
-function pauseOrResume() {
-    gPausing = !gPausing;
-    document.getElementById('pause').disabled = gPausing;
-    document.getElementById('train').disabled = !gPausing;
-}
-
-async function trainOnTabs(onlyOneStep) {
-    // Grey out Train button:
-    const trainButton = document.getElementById('train');
-    trainButton.disabled = true;
-    trainButton.onclick = pauseOrResume;
+async function trainOnTabs() {
+    // Grey out Evaluate button:
     const oneStepButton = document.getElementById('onlyOneStep');
     oneStepButton.disabled = true;
-    document.getElementById('pause').disabled = false;
 
     // Show progress bar and output.
     gProgressBar.classList.remove('hidden');
@@ -200,15 +75,12 @@ async function trainOnTabs(onlyOneStep) {
             {type: 'trainee',
              traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
-        const tuner = new Tuner(tabs, rulesetName, sleepUntilUnpaused);
-        await tuner.anneal(updateProgress, onlyOneStep);
+        const tuner = new Tuner(tabs, rulesetName);
+        await tuner.anneal(updateProgress);
     } finally {
         // Restore UI state, leaving output visible.
         gProgressBar.classList.add('hidden');
         gProgressBar.setAttribute('value', 0);
-        trainButton.onclick = trainOnTabs;
-        document.getElementById('pause').disabled = true;
-        trainButton.disabled = false;
         oneStepButton.disabled = false;
     }
 }
@@ -313,11 +185,9 @@ async function initPage(document) {
     gCiDiv.appendChild(document.createTextNode(''));
     gCostDiv.appendChild(document.createTextNode(''));
 
-    document.getElementById('train').onclick = () => trainOnTabs(false);
-    document.getElementById('onlyOneStep').onclick = () => trainOnTabs(true);
-    document.getElementById('pause').onclick = pauseOrResume;
+    document.getElementById('onlyOneStep').onclick = trainOnTabs;
 
-    initRulesetMenu(document.getElementById('train'));
+    initRulesetMenu(document.getElementById('onlyOneStep'));
 }
 
 initPage(document);
