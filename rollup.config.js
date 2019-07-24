@@ -4,6 +4,7 @@ import json from 'rollup-plugin-json';
 import builtins from 'rollup-plugin-node-builtins';
 import globals from 'rollup-plugin-node-globals';
 import copy from 'rollup-plugin-copy';
+const webpackPostcss = require('./src/rollup-plugin-webpack-postcss/rollup-plugin-webpack-postcss');
 
 /**
  * Return typical rollup settings for a file of a given name.
@@ -18,6 +19,7 @@ function mindlesslyFactoredOutSettings(name) {
         },
         plugins: [
             resolve({preferBuiltins: true}),
+            webpackPostcss(),
             commonjs({
                 namedExports: {
                     'wu': ['forEach', 'map', 'flatten']
@@ -27,7 +29,9 @@ function mindlesslyFactoredOutSettings(name) {
             globals(),
             builtins(),
             copy({
-                'node_modules/simmerjs/dist/simmer.js': 'addon/simmer.js',
+                targets: [
+                    { src: 'node_modules/simmerjs/dist/simmer.js', dest: 'addon' },
+                ]
             }),
         ]
     }
