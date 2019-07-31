@@ -1,4 +1,4 @@
-let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gCostDiv, gGoodBadDiv = false;
+let gCoeffsDiv, gAccuracyDiv, gCiDiv, gCostDiv, gGoodBadDiv = false;
 
 class Evaluator {
     constructor(tabs, traineeId) {
@@ -6,23 +6,17 @@ class Evaluator {
         this.traineeId = traineeId;
     }
 
-    // Copy-and-pasted from Fathom just to allow solutionCost() to be async.
-    // What color is your function?
-    async anneal(updateProgress) {
-        let solution = await this.initialSolution();
-        let cost = await this.solutionCost(solution);
-        updateProgress(0, solution, cost, await this.verboseSuccessReports(solution));
-    }
-
-    /**
-     * Try the ruleset on each tab, and return a bigger blob of info that
-     * allows us to show the user which element it found, for debugging.
-     */
-    async verboseSuccessReports(coeffs) {
-        return (await this.resultsForPages(coeffs)).map((result, i) => ({
-            didSucceed: result.didSucceed,
-            filename: urlFilename(this.tabs[i].url),
-            tabId: this.tabs[i].id}));
+    async evaluate() {
+        let coeffs = (await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {
+                type: 'trainee',
+                traineeId: this.traineeId
+            }
+        )).coeffs;
+        const attempts = await this.resultsForPages(coeffs);
+        const cost = attempts.reduce((accum, value) => accum + value.cost, 0);
+        updateOutputs(coeffs, cost, await this.verboseSuccessReports(coeffs));
     }
 
     /**
@@ -37,32 +31,34 @@ class Evaluator {
     async resultsForPages(coeffs) {
         return browser.runtime.sendMessage(
             'fathomtrainees@mozilla.com',
-            {type: 'rulesetSucceededOnTabs',
-             tabIds: this.tabs.map(tab => tab.id),
-             traineeId: this.traineeId,
-             coeffs: Array.from(coeffs.entries())});
+            {
+                type: 'rulesetSucceededOnTabs',
+                tabIds: this.tabs.map(tab => tab.id),
+                traineeId: this.traineeId,
+                coeffs: Array.from(coeffs.entries())
+            }
+        );
     }
 
-    async solutionCost(coeffs) {
-        const attempts = await this.resultsForPages(coeffs);
-        return attempts.reduce((accum, value) => accum + value.cost, 0);
+    /**
+     * Try the ruleset on each tab, and return a bigger blob of info that
+     * allows us to show the user which element it found, for debugging.
+     */
+    async verboseSuccessReports(coeffs) {
+        return (await this.resultsForPages(coeffs)).map((result, i) => ({
+            didSucceed: result.didSucceed,
+            filename: urlFilename(this.tabs[i].url),
+            tabId: this.tabs[i].id}));
     }
 
-    async initialSolution() {
-        return (await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: this.traineeId})).coeffs;
-    }
 }
 
 async function evaluateTabs() {
     // Grey out Evaluate button:
-    const oneStepButton = document.getElementById('evaluate');
-    oneStepButton.disabled = true;
+    const evaluateButton = document.getElementById('evaluate');
+    evaluateButton.disabled = true;
 
-    // Show progress bar and output.
-    gProgressBar.classList.remove('hidden');
+    // Show output.
     document.getElementById('output').classList.remove('hidden');
 
     try {
@@ -76,12 +72,10 @@ async function evaluateTabs() {
              traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
         const evaluator = new Evaluator(tabs, rulesetName);
-        await evaluator.anneal(updateProgress);
+        await evaluator.evaluate();
     } finally {
         // Restore UI state, leaving output visible.
-        gProgressBar.classList.add('hidden');
-        gProgressBar.setAttribute('value', 0);
-        oneStepButton.disabled = false;
+        evaluateButton.disabled = false;
     }
 }
 
@@ -108,25 +102,22 @@ function percentify(ratio) {
     return `${(ratio * 100).toFixed(1)}%`;
 }
 
-function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
-    // Tick progress meter.
-    gProgressBar.setAttribute('value', ratio);
-
+function updateOutputs(coeffs, cost, successesOrFailures) {
     // Update best coeffs and accuracy.
-    const bestCoeffs = [];
-    for (const [key, val] of bestSolution.entries()) {
-        bestCoeffs.push(`${key}: ${val}`);
+    const coeffStrings = [];
+    for (const [key, val] of coeffs.entries()) {
+        coeffStrings.push(`${key}: ${val}`);
     }
-    gCoeffsDiv.firstChild.textContent = `[${bestCoeffs.join(', ')}]`;
-    gCostDiv.firstChild.textContent = Math.trunc(bestCost);
+    gCoeffsDiv.firstChild.textContent = `[${coeffStrings.join(', ')}]`;
+    gCostDiv.firstChild.textContent = Math.trunc(cost);
 
     if (successesOrFailures) {
         // Compute and show accuracy:
-        const bestAccuracy = successesOrFailures.reduce((accum, sf) => accum + sf.didSucceed, 0) / successesOrFailures.length;
-        gAccuracyDiv.firstChild.textContent = percentify(bestAccuracy);
+        const accuracy = successesOrFailures.reduce((accum, sf) => accum + sf.didSucceed, 0) / successesOrFailures.length;
+        gAccuracyDiv.firstChild.textContent = percentify(accuracy);
 
         // Draw CI readout:
-        const [ciLow, ciHigh] = confidenceInterval(bestAccuracy, successesOrFailures.length);
+        const [ciLow, ciHigh] = confidenceInterval(accuracy, successesOrFailures.length);
         gCiDiv.firstChild.textContent = `${percentify(ciLow)} - ${percentify(ciHigh)}`;
 
         // Draw good/bad chart:
@@ -149,7 +140,7 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
                     {type: 'labelBadElement',
                      tabId: sf.tabId,
                      traineeId,
-                     coeffs: bestSolution});
+                     coeffs: coeffs});
                 browser.tabs.update(sf.tabId, {active: true});
                 // Update the Fathom dev tools panel if it's open:
                 browser.runtime.sendMessage({type: 'refresh'});
@@ -165,7 +156,6 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
  */
 async function initPage(document) {
     // Find elements once.
-    gProgressBar = document.getElementById('progress');
     gCoeffsDiv = document.getElementById('coeffs');
     gAccuracyDiv = document.getElementById('accuracy');
     gCiDiv = document.getElementById('ci');
