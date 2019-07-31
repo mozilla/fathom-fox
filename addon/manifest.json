@@ -28,5 +28,13 @@
         "downloads",
         "tabs"
     ],
-    "devtools_page": "pages/devtoolsOpener.html"
+    "devtools_page": "pages/devtoolsOpener.html",
+    "commands": {
+        "freeze-page": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+F"
+            },
+            "description": "Download page in current active tab"
+        }
+    }
 }
