@@ -1,6 +1,6 @@
 let gProgressBar, gCoeffsDiv, gAccuracyDiv, gCiDiv, gCostDiv, gGoodBadDiv = false;
 
-class Tuner {
+class Evaluator {
     constructor(tabs, traineeId) {
         this.tabs = tabs;
         this.traineeId = traineeId;
@@ -35,7 +35,7 @@ class Tuner {
      *     page
      */
     async resultsForPages(coeffs) {
-        return await browser.runtime.sendMessage(
+        return browser.runtime.sendMessage(
             'fathomtrainees@mozilla.com',
             {type: 'rulesetSucceededOnTabs',
              tabIds: this.tabs.map(tab => tab.id),
@@ -56,9 +56,9 @@ class Tuner {
     }
 }
 
-async function trainOnTabs() {
+async function evaluateTabs() {
     // Grey out Evaluate button:
-    const oneStepButton = document.getElementById('onlyOneStep');
+    const oneStepButton = document.getElementById('evaluate');
     oneStepButton.disabled = true;
 
     // Show progress bar and output.
@@ -67,7 +67,7 @@ async function trainOnTabs() {
 
     try {
         // TODO: Using "active" here rather than a tab ID presents a race condition
-        // if you quickly switch away from the tab after clicking the Train button.
+        // if you quickly switch away from the tab after clicking the Evaluate button.
         const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
         const rulesetName = document.getElementById('ruleset').value;
         const viewportSize = (await browser.runtime.sendMessage(
@@ -75,8 +75,8 @@ async function trainOnTabs() {
             {type: 'trainee',
              traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
-        const tuner = new Tuner(tabs, rulesetName);
-        await tuner.anneal(updateProgress);
+        const evaluator = new Evaluator(tabs, rulesetName);
+        await evaluator.anneal(updateProgress);
     } finally {
         // Restore UI state, leaving output visible.
         gProgressBar.classList.add('hidden');
@@ -161,7 +161,7 @@ function updateProgress(ratio, bestSolution, bestCost, successesOrFailures) {
 }
 
 /**
- * Draw and outfit the Train page.
+ * Draw and outfit the Evaluator page.
  */
 async function initPage(document) {
     // Find elements once.
@@ -185,9 +185,9 @@ async function initPage(document) {
     gCiDiv.appendChild(document.createTextNode(''));
     gCostDiv.appendChild(document.createTextNode(''));
 
-    document.getElementById('onlyOneStep').onclick = trainOnTabs;
+    document.getElementById('evaluate').onclick = evaluateTabs;
 
-    initRulesetMenu(document.getElementById('onlyOneStep'));
+    initRulesetMenu(document.getElementById('evaluate'));
 }
 
 initPage(document);

@@ -128,12 +128,12 @@
     </style>
   </head>
   <body class="browser-style" style="padding: 0 20px">
-    <h1>Trainer</h1>
+    <h1>Evaluator</h1>
     <p id="please-install" class="warning hidden">
       No rulesets found. Please install a “trainee” web extension containing your rulesets. For an example, see <a href="https://github.com/mozilla/fathom-trainees">Fathom Trainees</a>.
     </p>
     <p>
-      Optimize your ruleset’s weighting coefficients based on the samples you’ve loaded as tabs in this window.
+      Evaluate your ruleset based on the samples you’ve loaded as tabs in this window.
     </p>
     <div class="uiGrid">
       <div class="label">
@@ -145,7 +145,7 @@
       <div>
       </div>
       <div>
-        <button type="button" id="onlyOneStep" class="browser-style">Evaluate</button>
+        <button type="button" id="evaluate" class="browser-style">Evaluate</button>
       </div>
       <div>
       </div>
@@ -153,9 +153,6 @@
         <meter id="progress" class="hidden"></meter>
       </div>
       <div>
-      </div>
-      <div id="caveats" class="bottommost">
-        Standard window size will be used for consistent sizing of elements. Training is stochastic, so different runs may reach different results.
       </div>
       <div id="output" class="hidden uiGrid">
           <div class="label">
@@ -185,6 +182,6 @@
       </div>
     </div>
     <script src="../utils.js"></script>
-    <script src="../train.js"></script>
+    <script src="../evaluate.js"></script>
   </body>
 </html>

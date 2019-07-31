@@ -4,5 +4,5 @@ function openTab(url) {
 }
 
 document.getElementById('collectCorpus').addEventListener('click', () => openTab('/pages/corpus.html'));
-document.getElementById('train').addEventListener('click', () => openTab('/pages/train.html'));
+document.getElementById('evaluate').addEventListener('click', () => openTab('/pages/evaluate.html'));
 document.getElementById('vectorize').addEventListener('click', () => openTab('/pages/vector.html'));
