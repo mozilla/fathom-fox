@@ -14,9 +14,21 @@ class Evaluator {
                 traineeId: this.traineeId
             }
         )).coeffs;
-        const attempts = await this.resultsForPages(coeffs);
-        const cost = attempts.reduce((accum, value) => accum + value.cost, 0);
-        updateOutputs(coeffs, cost, await this.verboseSuccessReports(coeffs));
+        const successReport = await this.verboseSuccessReports(coeffs);
+        const cost = successReport.reduce((accum, value) => accum + value.cost, 0);
+        updateOutputs(coeffs, cost, successReport);
+    }
+
+    /**
+     * Try the ruleset on each tab, and return a bigger blob of info that
+     * allows us to show the user which element it found, for debugging.
+     */
+    async verboseSuccessReports(coeffs) {
+        return (await this.resultsForPages(coeffs)).map((result, i) => ({
+            didSucceed: result.didSucceed,
+            cost: result.cost,
+            filename: urlFilename(this.tabs[i].url),
+            tabId: this.tabs[i].id}));
     }
 
     /**
@@ -38,17 +50,6 @@ class Evaluator {
                 coeffs: Array.from(coeffs.entries())
             }
         );
-    }
-
-    /**
-     * Try the ruleset on each tab, and return a bigger blob of info that
-     * allows us to show the user which element it found, for debugging.
-     */
-    async verboseSuccessReports(coeffs) {
-        return (await this.resultsForPages(coeffs)).map((result, i) => ({
-            didSucceed: result.didSucceed,
-            filename: urlFilename(this.tabs[i].url),
-            tabId: this.tabs[i].id}));
     }
 
 }
