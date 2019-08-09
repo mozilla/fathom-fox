@@ -49,3 +49,32 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
             });
     }
 });
+
+async function freeze_tab(tab) {
+    const html = await browser.tabs.sendMessage(
+        tab.id,
+        {
+            type: 'freeze',
+            options: {
+                wait: 0,
+                shouldScroll: false
+            }
+        }
+    );
+    await download(html, {saveAs: true});
+}
+
+browser.commands.onCommand.addListener((command) => {
+    if (command === 'freeze-page') {
+        browser.tabs.query({currentWindow: true, active: true})
+            .then((tabs) => {
+                return tabs[0];
+            })
+            .then((tab) => {
+                return freeze_tab(tab);
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+    }
+});
