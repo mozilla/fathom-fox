@@ -50,38 +50,28 @@ browser.tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
     }
 });
 
-async function freeze_active_tab(tab) {
-    // TODO: Is this try-catch unnecessary since it's being called below in a try-catch?
-    try {
-        await browser.tabs.executeScript(
-            tab.id,
-            {file: '/contentScript.js'}
-        );
-        const html = await browser.tabs.sendMessage(
-            tab.id,
-            {
-                type: 'freeze',
-                options: {
-                    wait: 0,
-                    shouldScroll: false
-                }
+async function freeze_tab(tab) {
+    const html = await browser.tabs.sendMessage(
+        tab.id,
+        {
+            type: 'freeze',
+            options: {
+                wait: 0,
+                shouldScroll: false
             }
-        );
-        await download(html, {saveAs: true});
-    } catch(e) {
-        console.error(e);
-    }
+        }
+    );
+    await download(html, {saveAs: true});
 }
 
 browser.commands.onCommand.addListener((command) => {
-    if (command === "freeze-page") {
+    if (command === 'freeze-page') {
         browser.tabs.query({currentWindow: true, active: true})
             .then((tabs) => {
-                // TODO: There should only be one tab here. Should I handle this a different way?
                 return tabs[0];
             })
             .then((tab) => {
-                return freeze_active_tab(tab);
+                return freeze_tab(tab);
             })
             .catch((error) => {
                 console.log(error);
