@@ -1,6 +1,9 @@
 class CorpusCollector extends PageVisitor {
     constructor(document) {
         super(document);
+
+        this.vectors = [];
+        this.trainee = undefined;
     }
 
     formOptions() {
@@ -33,16 +36,11 @@ class CorpusCollector extends PageVisitor {
         return options;
     }
 
-    async getViewportHeightAndWidth() {
+    getViewportHeightAndWidth() {
         // Pull the viewport size from the loaded trainee.
-        const trainee = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: this.otherOptions.traineeId});
-
         return {
-            height: trainee.viewportSize.height,
-            width: trainee.viewportSize.width
+            height: this.trainee.viewportSize.height,
+            width: this.trainee.viewportSize.width
         }
     }
 
@@ -73,15 +71,15 @@ class CorpusCollector extends PageVisitor {
             }
         }
         if (vector !== undefined) {
-            this._vectors.push(vector);
+            this.vectors.push(vector);
 
             // Check if any of the rules didn't run or returned null.
             // This presents as an undefined value in a feature vector.
-            const nullFeatures = await this.nullFeatures(vector.nodes);
+            const nullFeatures = this.nullFeatures(vector.nodes);
             if (nullFeatures) {
-                console.log(nullFeatures);
                 this.setCurrentStatus({
-                    message: 'failed: rule(s) ' + nullFeatures + ' returned null values',
+                    message: `failed: rule(s) ${nullFeatures} returned null values`,
+                    isError: true,
                     isFinal: true
                 });
             } else {
@@ -90,16 +88,10 @@ class CorpusCollector extends PageVisitor {
         }
     }
 
-    async nullFeatures(nodes) {
+    nullFeatures(nodes) {
         for (const node of nodes) {
             if (node.features.some(featureValue => featureValue === undefined)) {
-                // TODO: Should we get the feature names elsewhere so we don't have to make this async call multiple times?
-                const trainee = await browser.runtime.sendMessage(
-                    'fathomtrainees@mozilla.com',
-                    {type: 'trainee', traineeId: this.otherOptions.traineeId},
-                );
-                const featureNames = Array.from(trainee.coeffs.keys());
-
+                const featureNames = Array.from(this.trainee.coeffs.keys());
                 return node.features.reduce((nullFeatures, featureValue, index) => {
                     if (featureValue === undefined) {
                         nullFeatures.push(featureNames[index]);
@@ -110,24 +102,26 @@ class CorpusCollector extends PageVisitor {
         }
     }
 
-    processAtBeginningOfRun() {
-        this._vectors = [];
+    async processAtBeginningOfRun() {
+        this.vectors = [];
+        this.trainee = await browser.runtime.sendMessage(
+            'fathomtrainees@mozilla.com',
+            {
+                type: 'trainee',
+                traineeId: this.otherOptions.traineeId
+            }
+        );
     }
 
     async processAtEndOfRun() {
-        const trainee = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: this.otherOptions.traineeId});
-
         // Save vectors to disk.
         await download(JSON.stringify(
                 {
                     header: {
                         version: 1,
-                        featureNames: Array.from(trainee.coeffs.keys())
+                        featureNames: Array.from(this.trainee.coeffs.keys())
                     },
-                    pages: this._vectors
+                    pages: this.vectors
                 }
             ),
             {filename: 'vectors.json'}
