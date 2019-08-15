@@ -2,8 +2,9 @@ class CorpusCollector extends PageVisitor {
     constructor(document) {
         super(document);
 
-        this.vectors = [];
         this.trainee = undefined;
+        this.traineeId = undefined;
+        this.vectors = [];
     }
 
     formOptions() {
@@ -28,7 +29,6 @@ class CorpusCollector extends PageVisitor {
         }
 
         options.otherOptions = {
-            traineeId: this.doc.getElementById('ruleset').value,
             wait: parseInt(this.doc.getElementById('wait').value),
             retryOnError: this.doc.getElementById('retryOnError').checked
         };
@@ -57,7 +57,7 @@ class CorpusCollector extends PageVisitor {
                     'fathomtrainees@mozilla.com',
                     {type: 'vectorizeTab',
                      tabId: tab.id,
-                     traineeId: this.otherOptions.traineeId});
+                     traineeId: this.traineeId});
             } catch (error) {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
@@ -104,12 +104,13 @@ class CorpusCollector extends PageVisitor {
 
     async processAtBeginningOfRun() {
         this.vectors = [];
+        this.traineeId = this.doc.getElementById('ruleset').value;
         this.trainee = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {
-                type: 'trainee',
-                traineeId: this.otherOptions.traineeId
-            }
+          'fathomtrainees@mozilla.com',
+          {
+              type: 'trainee',
+              traineeId: this.traineeId
+          }
         );
     }
 

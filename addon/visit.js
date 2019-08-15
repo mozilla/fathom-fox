@@ -26,10 +26,10 @@ class PageVisitor {
     }
 
     async visitAllPages(event) {
-        await this.processAtBeginningOfRun();
-
         const visitor = this;
         event.preventDefault();
+
+        await this.processAtBeginningOfRun();
 
         const options = this.formOptions();
         if (options === undefined) {
