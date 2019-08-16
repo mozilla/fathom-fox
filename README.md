@@ -68,6 +68,14 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Version History
 
+### 3.2
+
+* Freezing pages now takes only 1/7 as long, thanks to an upgrade to the freeze-dry library.
+* There's now a keyboard shortcut for freezing the current page: command-shift-O. This lets you capture hover states.
+* The original URL of each frozen page is now preserved in an HTML attribute.
+* Rather than always defaulting to 1024x768 for the Viewport Size in the Vectorizer, pull the default from the `viewportSize` of the selected trainee.
+* Remove obsolete Trainer, pieces of which now remain solely as an Evaluator, for debugging rulesets.
+
 ### 3.1
 
 * Add an Evaluate button to the Trainer, useful for ruleset debugging.
