@@ -1,6 +1,10 @@
 class CorpusCollector extends PageVisitor {
     constructor(document) {
         super(document);
+
+        this.trainee = undefined;
+        this.traineeId = undefined;
+        this.vectors = [];
     }
 
     formOptions() {
@@ -25,7 +29,6 @@ class CorpusCollector extends PageVisitor {
         }
 
         options.otherOptions = {
-            traineeId: this.doc.getElementById('ruleset').value,
             wait: parseInt(this.doc.getElementById('wait').value),
             retryOnError: this.doc.getElementById('retryOnError').checked
         };
@@ -33,16 +36,11 @@ class CorpusCollector extends PageVisitor {
         return options;
     }
 
-    async getViewportHeightAndWidth() {
+    getViewportHeightAndWidth() {
         // Pull the viewport size from the loaded trainee.
-        const trainee = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: this.otherOptions.traineeId});
-
         return {
-            height: trainee.viewportSize.height,
-            width: trainee.viewportSize.width
+            height: this.trainee.viewportSize.height,
+            width: this.trainee.viewportSize.width
         }
     }
 
@@ -59,7 +57,7 @@ class CorpusCollector extends PageVisitor {
                     'fathomtrainees@mozilla.com',
                     {type: 'vectorizeTab',
                      tabId: tab.id,
-                     traineeId: this.otherOptions.traineeId});
+                     traineeId: this.traineeId});
             } catch (error) {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
@@ -73,29 +71,58 @@ class CorpusCollector extends PageVisitor {
             }
         }
         if (vector !== undefined) {
-            this._vectors.push(vector);
-            this.setCurrentStatus({message: 'vectorized', isFinal: true});
+            this.vectors.push(vector);
+
+            // Check if any of the rules didn't run or returned null.
+            // This presents as an undefined value in a feature vector.
+            const nullFeatures = this.nullFeatures(vector.nodes);
+            if (nullFeatures) {
+                this.setCurrentStatus({
+                    message: `failed: rule(s) ${nullFeatures} returned null values`,
+                    isError: true,
+                    isFinal: true
+                });
+            } else {
+                this.setCurrentStatus({message: 'vectorized', isFinal: true});
+            }
         }
     }
 
-    processAtBeginningOfRun() {
-        this._vectors = [];
+    nullFeatures(nodes) {
+        for (const node of nodes) {
+            if (node.features.some(featureValue => featureValue === undefined)) {
+                const featureNames = Array.from(this.trainee.coeffs.keys());
+                return node.features.reduce((nullFeatures, featureValue, index) => {
+                    if (featureValue === undefined) {
+                        nullFeatures.push(featureNames[index]);
+                    }
+                    return nullFeatures;
+                }, []);
+            }
+        }
+    }
+
+    async processAtBeginningOfRun() {
+        this.vectors = [];
+        this.traineeId = this.doc.getElementById('ruleset').value;
+        this.trainee = await browser.runtime.sendMessage(
+          'fathomtrainees@mozilla.com',
+          {
+              type: 'trainee',
+              traineeId: this.traineeId
+          }
+        );
     }
 
     async processAtEndOfRun() {
-        const trainee = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: this.otherOptions.traineeId});
-
         // Save vectors to disk.
         await download(JSON.stringify(
                 {
                     header: {
                         version: 1,
-                        featureNames: Array.from(trainee.coeffs.keys())
+                        featureNames: Array.from(this.trainee.coeffs.keys())
                     },
-                    pages: this._vectors
+                    pages: this.vectors
                 }
             ),
             {filename: 'vectors.json'}

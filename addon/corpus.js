@@ -53,7 +53,7 @@ class CorpusCollector extends PageVisitor {
         return options;
     }
 
-    async getViewportHeightAndWidth() {
+    getViewportHeightAndWidth() {
         return {
             height: parseInt(this.doc.getElementById('viewportHeight').value),
             width: parseInt(this.doc.getElementById('viewportWidth').value)

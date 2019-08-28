@@ -26,10 +26,10 @@ class PageVisitor {
     }
 
     async visitAllPages(event) {
-        this.processAtBeginningOfRun();
-
         const visitor = this;
         event.preventDefault();
+
+        await this.processAtBeginningOfRun();
 
         const options = this.formOptions();
         if (options === undefined) {
@@ -39,7 +39,7 @@ class PageVisitor {
         this.timeout = options.timeout;
         this.otherOptions = options.otherOptions;
 
-        const viewportSize = await this.getViewportHeightAndWidth();
+        const viewportSize = this.getViewportHeightAndWidth();
         this.viewportHeight = viewportSize.height;
         this.viewportWidth = viewportSize.width;
 
@@ -186,7 +186,7 @@ class PageVisitor {
     }
 
     // This runs before the first visited page is loaded.
-    processAtBeginningOfRun() {
+    async processAtBeginningOfRun() {
     }
 
     // Do per-tab stuff that should be subject to the timeout.
@@ -215,7 +215,7 @@ class PageVisitor {
     }
 
     // This is used to get the viewport size.
-    async getViewportHeightAndWidth() {
+    getViewportHeightAndWidth() {
         throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
