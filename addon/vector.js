@@ -77,13 +77,21 @@ class CorpusCollector extends PageVisitor {
             // This presents as an undefined value in a feature vector.
             const nullFeatures = this.nullFeatures(vector.nodes);
             if (nullFeatures) {
+                // TODO: Probably better to match using tab.url instead of having a magic number.
                 this.setCurrentStatus({
                     message: `failed: rule(s) ${nullFeatures} returned null values`,
+                    index: tab.index - 1,
                     isError: true,
                     isFinal: true
                 });
             } else {
-                this.setCurrentStatus({message: 'vectorized', isFinal: true});
+                // TODO: Probably better to match using tab.url instead of having a magic number.
+                this.setCurrentStatus({message: 'vectorized', index: tab.index - 1, isFinal: true});
+            }
+
+            // TODO: Think of a better way to do this trigger
+            if (this.vectors.length === this.urls.length) {
+              return 'done';
             }
         }
     }
