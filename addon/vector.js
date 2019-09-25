@@ -79,11 +79,16 @@ class CorpusCollector extends PageVisitor {
             if (nullFeatures) {
                 this.setCurrentStatus({
                     message: `failed: rule(s) ${nullFeatures} returned null values`,
+                    index: this.getIndexOfURL(tab.url),
                     isError: true,
                     isFinal: true
                 });
             } else {
-                this.setCurrentStatus({message: 'vectorized', isFinal: true});
+                this.setCurrentStatus({
+                    message: 'vectorized',
+                    index: this.getIndexOfURL(tab.url),
+                    isFinal: true
+                });
             }
         }
     }

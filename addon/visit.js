@@ -29,6 +29,10 @@ class PageVisitor {
         this.doc.getElementById('freeze').disabled = this.formOptions() === undefined;
     }
 
+    getIndexOfURL(url) {
+        return this.urls.findIndex(filenameAndURL => filenameAndURL.url === url);
+    }
+
     async visitAllPages(event) {
         const visitor = this;
         event.preventDefault();
@@ -84,7 +88,12 @@ class PageVisitor {
                 async function timeout() {
                     console.error(tab.url, 'timeout');
                     clearTimeout(timer);
-                    visitor.setCurrentStatus({message: 'timeout', isFinal: true, isError: true});
+                    visitor.setCurrentStatus({
+                        message: 'timeout',
+                        index: visitor.getIndexOfURL(tab.url),
+                        isFinal: true,
+                        isError: true
+                    });
                     // Stop everything (no point in continuing if we have an error)
                     visitor.doc.dispatchEvent(new CustomEvent(
                       'fathom:done',
@@ -131,7 +140,7 @@ class PageVisitor {
             // Create a new tab with the current url.
             // The tabs.onUpdated handler in visitAllPages() will dispatch a fathom:freeze
             // event when the tab has completed loading.
-            this.setCurrentStatus({message: 'loading'});
+            this.setCurrentStatus({message: 'loading', index: this.urlIndex});
             browser.tabs.create({
                 windowId: windowId,
                 url: this.urls[this.urlIndex].url,
@@ -155,7 +164,7 @@ class PageVisitor {
         const timer = event.detail.timer;
         const tab = (await browser.tabs.get(event.detail.tabId));
 
-        this.setCurrentStatus({message: 'freezing'});
+        this.setCurrentStatus({message: 'freezing', index: this.getIndexOfURL(tab.url)});
         try {
             const result = await this.processWithinTimeout(tab);
 
@@ -180,6 +189,7 @@ class PageVisitor {
                 error = "tab unexpectedly closed (message manager disconnected)";
             }
             this.setCurrentStatus({
+                index: this.getIndexOfURL(tab.url),
                 message: 'freezing failed: ' + error, isError: true, isFinal: true
             });
             // Stop everything (no point in continuing if we have an error)
@@ -244,12 +254,10 @@ class PageVisitor {
         throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
-    setCurrentStatus({message, isFinal=false, isError=false}) {
+    setCurrentStatus({message, index, isFinal=false, isError=false}) {
         // Add or update the status entry for the current url in the UI.
         // Messages marked as 'final' cannot be overwritten.
 
-        // TODO: Is there any concern of race conditions between the use of urlIndex here and changes in next()?
-        const index = this.urlIndex;
         let li = this.doc.getElementById('u' + index);
         if (!li) {
             li = this.doc.createElement('li');
