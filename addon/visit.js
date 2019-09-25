@@ -4,8 +4,9 @@
 class PageVisitor {
     constructor(document) {
         this.urls =[];  // Array of {filename, url} to visit
-        // TODO: Within next, check this and do end stuff (basically the old next)
-        this.urlCounter = undefined;  // index of current URL in this.urls
+        this.urlIndex = -1;  // index of current URL in this.urls
+        this.maxTabs = 16;  // Max tabs to have open at one time (may change in start())
+        this.tabsDone = 0;  // Counter for triggering successful done event
         this.timeout = undefined;
         this.viewportWidth = undefined;
         this.viewportHeight = undefined;
@@ -16,6 +17,7 @@ class PageVisitor {
 
     addEventListeners() {
         this.doc.addEventListener('fathom:start', this.start.bind(this), false);
+        this.doc.addEventListener('fathom:next', this.next.bind(this), false);
         this.doc.addEventListener('fathom:visitPage', this.visitPage.bind(this), false);
         this.doc.addEventListener('fathom:done', this.done.bind(this), false);
         this.doc.getElementById('pages').addEventListener('keyup', this.setButtonEnabled.bind(this));
@@ -82,9 +84,12 @@ class PageVisitor {
                 async function timeout() {
                     console.error(tab.url, 'timeout');
                     clearTimeout(timer);
-                    // TODO: Probably better to match using tab.url instead of having a magic number.
-                    visitor.setCurrentStatus({message: 'timeout', index: tab.index - 1, isFinal: true, isError: true});
-                    // TODO: Probably bring back the close tab and call to next.
+                    visitor.setCurrentStatus({message: 'timeout', isFinal: true, isError: true});
+                    // Stop everything (no point in continuing if we have an error)
+                    visitor.doc.dispatchEvent(new CustomEvent(
+                      'fathom:done',
+                      {detail: {windowId: windowId, success: false}}
+                    ));
                 }
 
                 // Process this page.
@@ -103,28 +108,54 @@ class PageVisitor {
         windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
     }
 
-    // Load a tab for each url in this.urls.
+    // Start processing by triggering 16 next events. This will load a tab for
+    // each of the first 16 urls in this.urls. If this.urls is less than 16
+    // urls in length, we load them all.
     async start(event) {
         const windowId = event.detail;
-        // TODO: Do 16 at a time
-        this.urls.forEach((url, index) => {
-            this.setCurrentStatus({message: 'loading', index: index});
+        this.maxTabs = Math.min(this.maxTabs, this.urls.length);
+        for (let i = 0; i < this.maxTabs; i++) {
+            this.doc.dispatchEvent(new CustomEvent(
+              'fathom:next',
+              {detail: windowId}
+            ));
+        }
+    }
+
+    // Load next tab from this.urls, or close the window if we're done.
+    async next(event) {
+        const windowId = event.detail;
+
+        if (this.urlIndex < this.urls.length - 1) {
+            this.urlIndex++;
+            // Create a new tab with the current url.
+            // The tabs.onUpdated handler in visitAllPages() will dispatch a fathom:freeze
+            // event when the tab has completed loading.
+            this.setCurrentStatus({message: 'loading'});
             browser.tabs.create({
                 windowId: windowId,
-                url: url.url,
+                url: this.urls[this.urlIndex].url,
             });
-        });
+        } else {
+            // We cannot immediately assume we're done because there may still
+            // be some tabs that need to finish up their last url.
+            this.tabsDone++;
+            if (this.tabsDone === this.maxTabs) {
+                this.doc.dispatchEvent(new CustomEvent(
+                  'fathom:done',
+                  {detail: {windowId: windowId, success: true}}
+                ));
+            }
+        }
     }
 
     // A page to be frozen has finished loading. Do something to it.
-    // TODO: Need to close tabs again.
-    // TODO: What to do on a failure? -> Stop everything
     async visitPage(event) {
+        const windowId = event.detail.windowId;
         const timer = event.detail.timer;
         const tab = (await browser.tabs.get(event.detail.tabId));
 
-        // TODO: Probably better to match using tab.url instead of having a magic number.
-        this.setCurrentStatus({message: 'freezing', index: tab.index - 1});
+        this.setCurrentStatus({message: 'freezing'});
         try {
             const result = await this.processWithinTimeout(tab);
 
@@ -132,16 +163,9 @@ class PageVisitor {
             clearTimeout(timer);
 
             await this.processWithoutTimeout(result);
-
-            // TODO: Think of a better way to do this trigger and perhaps better place, what happens with errors?
-            // Done with all urls, do cleanup.
-            if (result === 'done') {
-                this.doc.dispatchEvent(new CustomEvent(
-                  'fathom:done',
-                  {detail: event.detail.windowId}
-                ));
-            }
         } catch (e) {
+            // TODO: Is this needed here? I think it is so the real error doesn't get hijacked by a timeout.
+            clearTimeout(timer);
             // Beware: control flow can pass from the very end of the `try` block
             // above to here, for example when "Message manager disconnected"
             // happens in a tab we just froze. This is the motivation behind the
@@ -155,25 +179,31 @@ class PageVisitor {
             } else if (e.message === 'Message manager disconnected') {
                 error = "tab unexpectedly closed (message manager disconnected)";
             }
-            // TODO: Probably better to match using tab.url instead of having a magic number.
             this.setCurrentStatus({
-                message: 'freezing failed: ' + error, index: tab.index - 1, isError: true, isFinal: true
+                message: 'freezing failed: ' + error, isError: true, isFinal: true
             });
-        } finally {
-            clearTimeout(timer);
-            this.urlCounter++;
-            if (this.urlCounter === this.urls.length) {
-                // Cleanup
-            }
+            // Stop everything (no point in continuing if we have an error)
+            this.doc.dispatchEvent(new CustomEvent(
+              'fathom:done',
+              {detail: {windowId: windowId, success: false}}
+            ));
         }
-        // TODO: Probably close the tab and call next
+
+        await browser.tabs.remove(tab.id);
+        // Done with this url, trigger loading of the next.
+        this.doc.dispatchEvent(new CustomEvent(
+          'fathom:next',
+          {detail: windowId}
+        ));
     }
 
-    // TODO: Inline
     // Do final cleanup and close the window.
     async done(event) {
-        const windowId = event.detail;
-        await this.processAtEndOfRun();
+        // If there was an error, we skip processing the results
+        if (event.detail.success) {
+            await this.processAtEndOfRun();
+        }
+        const windowId = event.detail.windowId;
         browser.tabs.onUpdated.removeListener(this.tabUpdateListener);
         this.tabUpdateListener = undefined;
         browser.windows.remove(windowId);
@@ -214,10 +244,12 @@ class PageVisitor {
         throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
-    setCurrentStatus({message, index, isFinal=false, isError=false}) {
+    setCurrentStatus({message, isFinal=false, isError=false}) {
         // Add or update the status entry for the current url in the UI.
         // Messages marked as 'final' cannot be overwritten.
 
+        // TODO: Is there any concern of race conditions between the use of urlIndex here and changes in next()?
+        const index = this.urlIndex;
         let li = this.doc.getElementById('u' + index);
         if (!li) {
             li = this.doc.createElement('li');
@@ -236,7 +268,6 @@ class PageVisitor {
         }
 
         emptyElement(li);
-        // TODO: May want to send the url as well
         const urlObject = this.urls[index];
         const url = (urlObject === undefined) ? 'no URL' : urlObject.url;  // 'no URL' should never happen but comes in handy when avoiding the out-of-bound array access error when debugging this sprawling state machine.
         li.appendChild(this.doc.createTextNode(url + ': ' + message));
