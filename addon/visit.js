@@ -163,16 +163,17 @@ class PageVisitor {
     async visitPage(event) {
         const windowId = event.detail.windowId;
         const timer = event.detail.timer;
+        const urlIndex = event.detail.urlIndex;
         const tab = (await browser.tabs.get(event.detail.tabId));
 
-        this.setCurrentStatus({message: 'freezing', index: this.getIndexOfURL(tab.url)});
+        this.setCurrentStatus({message: 'freezing', index: urlIndex});
         try {
             const result = await this.processWithinTimeout(tab);
 
             // Clear timeout here so we don't bail out while writing to disk:
             clearTimeout(timer);
 
-            await this.processWithoutTimeout(result);
+            await this.processWithoutTimeout(result, urlIndex);
         } catch (e) {
             // TODO: Is this needed here? I think it is so the real error doesn't get hijacked by a timeout.
             clearTimeout(timer);

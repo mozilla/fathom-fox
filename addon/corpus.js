@@ -78,12 +78,16 @@ class CorpusCollector extends PageVisitor {
         return html;
     }
 
-    async processWithoutTimeout(html) {
+    async processWithoutTimeout(html, urlIndex) {
         // Save html to disk.
-        const filename = this.urls[this.urlIndex].filename;
+        const filename = this.urls[urlIndex].filename;
         const download_filename = await download(html, {filename});
 
-        this.setCurrentStatus({message: 'downloaded as ' + download_filename, isFinal: true});
+        this.setCurrentStatus({
+          message: 'downloaded as ' + download_filename,
+          index: urlIndex,
+          isFinal: true
+        });
     }
 }
 
