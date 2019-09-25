@@ -145,6 +145,7 @@ class PageVisitor {
             browser.tabs.create({
                 windowId: windowId,
                 url: this.urls[this.urlIndex].url,
+                active: false,
             });
         } else {
             // We cannot immediately assume we're done because there may still
