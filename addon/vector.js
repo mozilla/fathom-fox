@@ -63,7 +63,12 @@ class CorpusCollector extends PageVisitor {
                 // the receiver is a background script that should always be
                 // registered. The error goes away on retrying.
                 if (tries >= maxTries) {  // 3 is not enough.
-                    this.setCurrentStatus({message: 'failed: ' + error, isError: true, isFinal: true});
+                    this.setCurrentStatus({
+                        message: 'failed: ' + error,
+                        index: this.getIndexOfURL(tab.url),
+                        isError: true,
+                        isFinal: true
+                    });
                     break;
                 } else {
                     await sleep(1000);
