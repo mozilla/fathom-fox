@@ -163,8 +163,8 @@ class PageVisitor {
     async visitPage(event) {
         const windowId = event.detail.windowId;
         const timer = event.detail.timer;
-        const urlIndex = event.detail.urlIndex;
         const tab = (await browser.tabs.get(event.detail.tabId));
+        const urlIndex = this.getIndexOfURL(tab.url);
 
         this.setCurrentStatus({message: 'freezing', index: urlIndex});
         try {
