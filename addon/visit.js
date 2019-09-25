@@ -4,9 +4,9 @@
 class PageVisitor {
     constructor(document) {
         this.urls =[];  // Array of {filename, url} to visit
-        this.urlIndex = -1;  // index of current URL in this.urls
-        this.maxTabs = 16;  // Max tabs to have open at one time (may change in start())
-        this.tabsDone = 0;  // Counter for triggering successful done event
+        this.urlIndex = undefined;  // index of current URL in this.urls
+        this.tabsDone = undefined;
+        this.maxTabs = 16;
         this.timeout = undefined;
         this.viewportWidth = undefined;
         this.viewportHeight = undefined;
@@ -55,6 +55,9 @@ class PageVisitor {
 
         this.doc.getElementById('freeze').disabled = true;
         let windowId = 'uninitialized window ID';
+        this.urlIndex = -1;
+        this.tabsDone = 0;
+        this.maxTabs = Math.min(this.maxTabs, this.urls.length);
 
         // Listen for tab events before we start creating tabs; this avoids race
         // conditions between creating tabs and waiting for loading to complete.
@@ -117,12 +120,10 @@ class PageVisitor {
         windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
     }
 
-    // Start processing by triggering 16 next events. This will load a tab for
-    // each of the first 16 urls in this.urls. If this.urls is less than 16
-    // urls in length, we load them all.
+    // Start processing by triggering ``maxTabs`` next events. This will load
+    // a URL for each event and begin visiting pages in parallel.
     async start(event) {
         const windowId = event.detail;
-        this.maxTabs = Math.min(this.maxTabs, this.urls.length);
         for (let i = 0; i < this.maxTabs; i++) {
             this.doc.dispatchEvent(new CustomEvent(
               'fathom:next',
