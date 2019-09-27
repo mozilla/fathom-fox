@@ -263,14 +263,14 @@ class PageVisitor {
         throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
-    setCurrentStatus({message, tabId, isFinal=false, isError=false}) {
+    setCurrentStatus({message, index, isFinal=false, isError=false}) {
         // Add or update the status entry for the current url in the UI.
         // Messages marked as 'final' cannot be overwritten.
 
-        let li = this.doc.getElementById('u' + tabId);
+        let li = this.doc.getElementById('u' + index);
         if (!li) {
             li = this.doc.createElement('li');
-            li.setAttribute('id', 'u' + tabId);
+            li.setAttribute('id', 'u' + index);
             this.doc.getElementById('status').appendChild(li);
         }
 
@@ -285,7 +285,7 @@ class PageVisitor {
         }
 
         emptyElement(li);
-        const urlObject = this.urls[this.tabIdToUrlsIndex.get(tabId)];
+        const urlObject = this.urls[this.tabIdToUrlsIndex.get(index)];
         const url = (urlObject === undefined) ? 'no URL' : urlObject.url;  // 'no URL' should never happen but comes in handy when avoiding the out-of-bound array access error when debugging this sprawling state machine.
         li.appendChild(this.doc.createTextNode(url + ': ' + message));
         if (isError) {
