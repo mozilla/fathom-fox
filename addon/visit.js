@@ -4,6 +4,7 @@
 class PageVisitor {
     constructor(document) {
         this.urls =[];  // Array of {filename, url} to visit
+        this.tabIdToUrlsIndex = new Map();  // Maps tab IDs to an index in this.urls
         this.urlIndex = undefined;  // index of current URL in this.urls
         this.tabsDone = undefined;
         this.maxTabs = 16;
@@ -27,10 +28,6 @@ class PageVisitor {
 
     setButtonEnabled() {
         this.doc.getElementById('freeze').disabled = this.formOptions() === undefined;
-    }
-
-    getIndexOfURL(url) {
-        return this.urls.findIndex(filenameAndURL => filenameAndURL.url === url);
     }
 
     async visitAllPages(event) {
@@ -93,7 +90,7 @@ class PageVisitor {
                     clearTimeout(timer);
                     visitor.setCurrentStatus({
                         message: 'timeout',
-                        index: visitor.getIndexOfURL(tab.url),
+                        index: tab.id,
                         isFinal: true,
                         isError: true
                     });
@@ -138,15 +135,20 @@ class PageVisitor {
 
         if (this.urlIndex < this.urls.length - 1) {
             this.urlIndex++;
+            const urlIndexForMap = this.urlIndex;
             // Create a new tab with the current url.
             // The tabs.onUpdated handler in visitAllPages() will dispatch a fathom:freeze
             // event when the tab has completed loading.
-            this.setCurrentStatus({message: 'loading', index: this.urlIndex});
             browser.tabs.create({
                 windowId: windowId,
                 url: this.urls[this.urlIndex].url,
                 active: false,
-            });
+            }).then(tab => {
+                console.log(tab);
+                console.log(urlIndexForMap);
+                this.tabIdToUrlsIndex.set(tab.id, urlIndexForMap);
+                this.setCurrentStatus({message: 'loading', index: tab.id});
+            }).catch(error => console.log(error));
         } else {
             // We cannot immediately assume we're done because there may still
             // be some tabs that need to finish up their last url.
@@ -165,16 +167,15 @@ class PageVisitor {
         const windowId = event.detail.windowId;
         const timer = event.detail.timer;
         const tab = (await browser.tabs.get(event.detail.tabId));
-        const urlIndex = this.getIndexOfURL(tab.url);
 
-        this.setCurrentStatus({message: 'freezing', index: urlIndex});
+        this.setCurrentStatus({message: 'freezing', index: tab.id});
         try {
             const result = await this.processWithinTimeout(tab);
 
             // Clear timeout here so we don't bail out while writing to disk:
             clearTimeout(timer);
 
-            await this.processWithoutTimeout(result, urlIndex);
+            await this.processWithoutTimeout(result, tab.id);
         } catch (e) {
             // TODO: Is this needed here? I think it is so the real error doesn't get hijacked by a timeout.
             clearTimeout(timer);
@@ -192,7 +193,7 @@ class PageVisitor {
                 error = "tab unexpectedly closed (message manager disconnected)";
             }
             this.setCurrentStatus({
-                index: this.getIndexOfURL(tab.url),
+                index: tab.id,
                 message: 'freezing failed: ' + error, isError: true, isFinal: true
             });
             // Stop everything (no point in continuing if we have an error)
@@ -257,14 +258,14 @@ class PageVisitor {
         throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
-    setCurrentStatus({message, index, isFinal=false, isError=false}) {
+    setCurrentStatus({message, tabId, isFinal=false, isError=false}) {
         // Add or update the status entry for the current url in the UI.
         // Messages marked as 'final' cannot be overwritten.
 
-        let li = this.doc.getElementById('u' + index);
+        let li = this.doc.getElementById('u' + tabId);
         if (!li) {
             li = this.doc.createElement('li');
-            li.setAttribute('id', 'u' + index);
+            li.setAttribute('id', 'u' + tabId);
             this.doc.getElementById('status').appendChild(li);
         }
 
@@ -279,7 +280,7 @@ class PageVisitor {
         }
 
         emptyElement(li);
-        const urlObject = this.urls[index];
+        const urlObject = this.urls[this.tabIdToUrlsIndex.get(tabId)];
         const url = (urlObject === undefined) ? 'no URL' : urlObject.url;  // 'no URL' should never happen but comes in handy when avoiding the out-of-bound array access error when debugging this sprawling state machine.
         li.appendChild(this.doc.createTextNode(url + ': ' + message));
         if (isError) {

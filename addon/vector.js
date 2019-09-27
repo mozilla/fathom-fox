@@ -65,7 +65,7 @@ class CorpusCollector extends PageVisitor {
                 if (tries >= maxTries) {  // 3 is not enough.
                     this.setCurrentStatus({
                         message: 'failed: ' + error,
-                        index: this.getIndexOfURL(tab.url),
+                        index: tab.id,
                         isError: true,
                         isFinal: true
                     });
@@ -84,7 +84,7 @@ class CorpusCollector extends PageVisitor {
             if (nullFeatures) {
                 this.setCurrentStatus({
                     message: `failed: rule(s) ${nullFeatures} returned null values`,
-                    index: this.getIndexOfURL(tab.url),
+                    index: tab.id,
                     isError: true,
                     isFinal: true
                 });
@@ -96,7 +96,7 @@ class CorpusCollector extends PageVisitor {
             } else {
                 this.setCurrentStatus({
                     message: 'vectorized',
-                    index: this.getIndexOfURL(tab.url),
+                    index: tab.id,
                     isFinal: true
                 });
             }
