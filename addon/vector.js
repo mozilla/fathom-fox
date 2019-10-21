@@ -69,6 +69,11 @@ class CorpusCollector extends PageVisitor {
                         isError: true,
                         isFinal: true
                     });
+                    // Stop everything (no point in continuing if we have an error)
+                    this.doc.dispatchEvent(new CustomEvent(
+                      'fathom:done',
+                      {detail: {windowId: windowId, success: false}}
+                    ));
                     break;
                 } else {
                     await sleep(1000);
