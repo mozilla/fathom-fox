@@ -144,10 +144,8 @@ class PageVisitor {
             browser.tabs.create({
                 windowId: windowId,
                 url: this.urls[this.urlIndex].url,
-                active: false,
+                active: true,
             }).then(tab => {
-                console.log(tab);
-                console.log(urlIndexForMap);
                 this.tabIdToUrlsIndex.set(tab.id, urlIndexForMap);
                 this.setCurrentStatus({message: 'loading', index: tab.id});
             }).catch(error => {
