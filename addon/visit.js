@@ -195,15 +195,7 @@ class PageVisitor {
             } else if (e.message === 'Message manager disconnected') {
                 error = "tab unexpectedly closed (message manager disconnected)";
             }
-            this.setCurrentStatus({
-                index: tab.id,
-                message: 'freezing failed: ' + error, isError: true, isFinal: true
-            });
-            // Stop everything (no point in continuing if we have an error)
-            this.doc.dispatchEvent(new CustomEvent(
-              'fathom:done',
-              {detail: {windowId: windowId, success: false}}
-            ));
+            this.errorAndStop(`freezing failed: ${error}`, tab.id, windowId);
         }
 
         await browser.tabs.remove(tab.id);
@@ -259,6 +251,20 @@ class PageVisitor {
     // This is used to get the viewport size.
     getViewportHeightAndWidth() {
         throw new Error('You must implement getViewportHeightAndWidth()')
+    }
+
+    errorAndStop(error_message, tabId, windowId) {
+        this.setCurrentStatus({
+            message: error_message,
+            index: tabId,
+            isError: true,
+            isFinal: true
+        });
+        this.doc.dispatchEvent(new CustomEvent(
+          'fathom:done',
+          {detail: {windowId: windowId, success: false}}
+        ));
+
     }
 
     setCurrentStatus({message, index, isFinal=false, isError=false}) {

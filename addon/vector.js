@@ -62,18 +62,8 @@ class CorpusCollector extends PageVisitor {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
                 // registered. The error goes away on retrying.
-                if (tries >= maxTries) {  // 3 is not enough.
-                    this.setCurrentStatus({
-                        message: 'failed: ' + error,
-                        index: tab.id,
-                        isError: true,
-                        isFinal: true
-                    });
-                    // Stop everything (no point in continuing if we have an error)
-                    this.doc.dispatchEvent(new CustomEvent(
-                      'fathom:done',
-                      {detail: {windowId: windowId, success: false}}
-                    ));
+                if (tries >= maxTries) {  // 100 is not enough.
+                    this.errorAndStop(`failed: ${error}`, tab.id, windowId);
                     break;
                 } else {
                     await sleep(1000);
@@ -87,17 +77,7 @@ class CorpusCollector extends PageVisitor {
             // This presents as an undefined value in a feature vector.
             const nullFeatures = this.nullFeatures(vector.nodes);
             if (nullFeatures) {
-                this.setCurrentStatus({
-                    message: `failed: rule(s) ${nullFeatures} returned null values`,
-                    index: tab.id,
-                    isError: true,
-                    isFinal: true
-                });
-                // Stop everything (no point in continuing if we have an error)
-                this.doc.dispatchEvent(new CustomEvent(
-                  'fathom:done',
-                  {detail: {windowId: windowId, success: false}}
-                ));
+                this.errorAndStop(`failed: rule(s) ${nullFeatures} returned null values`, tab.id, windowId);
             } else {
                 this.setCurrentStatus({
                     message: 'vectorized',
