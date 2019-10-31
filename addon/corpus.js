@@ -60,7 +60,7 @@ class CorpusCollector extends PageVisitor {
         }
     }
 
-    async processWithinTimeout(tab) {
+    async processWithinTimeout(tab, windowId) {
         // Inject dispatcher to listen to the message we then send. Can't get a
         // return value directly out of the content script because webpack
         // wraps our top-level stuff in a function. Instead, we use messaging.

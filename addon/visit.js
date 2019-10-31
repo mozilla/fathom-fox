@@ -144,7 +144,7 @@ class PageVisitor {
             browser.tabs.create({
                 windowId: windowId,
                 url: this.urls[this.urlIndex].url,
-                active: true,
+                active: false,
             }).then(tab => {
                 this.tabIdToUrlsIndex.set(tab.id, urlIndexForMap);
                 this.setCurrentStatus({message: 'loading', index: tab.id});
@@ -173,7 +173,7 @@ class PageVisitor {
 
         this.setCurrentStatus({message: 'freezing', index: tab.id});
         try {
-            const result = await this.processWithinTimeout(tab);
+            const result = await this.processWithinTimeout(tab, windowId);
 
             // Clear timeout here so we don't bail out while writing to disk:
             clearTimeout(timer);
@@ -224,7 +224,7 @@ class PageVisitor {
     }
 
     // Do per-tab stuff that should be subject to the timeout.
-    async processWithinTimeout(tab) {
+    async processWithinTimeout(tab, windowId) {
     }
 
     // Do per-tab stuff that should happen after the timeout is disabled. This

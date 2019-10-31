@@ -44,7 +44,7 @@ class CorpusCollector extends PageVisitor {
         }
     }
 
-    async processWithinTimeout(tab) {
+    async processWithinTimeout(tab, windowId) {
         // Have fathom-trainees vectorize the page:
         let vector = undefined;
         let tries = 0;
@@ -52,6 +52,10 @@ class CorpusCollector extends PageVisitor {
         while (vector === undefined) {
             try {
                 tries++;
+                await browser.tabs.update(
+                  tab.id,
+                  {active: true}
+                );
                 await sleep(this.otherOptions.wait * 1000);
                 vector = await browser.runtime.sendMessage(
                     'fathomtrainees@mozilla.com',
