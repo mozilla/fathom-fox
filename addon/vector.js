@@ -45,6 +45,7 @@ class CorpusCollector extends PageVisitor {
     }
 
     async processWithinTimeout(tab, windowId) {
+        this.setCurrentStatus({message: 'vectorizing', index: tab.id});
         // Have fathom-trainees vectorize the page:
         let vector = undefined;
         let tries = 0;

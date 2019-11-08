@@ -171,7 +171,6 @@ class PageVisitor {
         const timer = event.detail.timer;
         const tab = (await browser.tabs.get(event.detail.tabId));
 
-        this.setCurrentStatus({message: 'freezing', index: tab.id});
         try {
             const result = await this.processWithinTimeout(tab, windowId);
 
