@@ -179,7 +179,6 @@ class PageVisitor {
 
             await this.processWithoutTimeout(result, tab.id);
         } catch (e) {
-            // TODO: Is this needed here? I think it is so the real error doesn't get hijacked by a timeout.
             clearTimeout(timer);
             // Beware: control flow can pass from the very end of the `try` block
             // above to here, for example when "Message manager disconnected"
