@@ -150,7 +150,7 @@ class PageVisitor {
                 this.setCurrentStatus({message: 'loading', index: tab.id});
             }).catch(error => {
                 // TODO: How to handle a failure in loading the tab since we won't have a status item to display an error for?
-                error.log(error);
+                console.error(error);
             });
         } else {
             // We cannot immediately assume we're done because there may still
