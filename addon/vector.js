@@ -44,14 +44,19 @@ class CorpusCollector extends PageVisitor {
         }
     }
 
-    async processWithinTimeout(tab) {
+    async processWithinTimeout(tab, windowId) {
+        this.setCurrentStatus({message: 'vectorizing', index: tab.id});
         // Have fathom-trainees vectorize the page:
         let vector = undefined;
         let tries = 0;
-        const maxTries = this.otherOptions.retryOnError ? 10 : 1;
+        const maxTries = this.otherOptions.retryOnError ? 100 : 1;
         while (vector === undefined) {
             try {
                 tries++;
+                await browser.tabs.update(
+                  tab.id,
+                  {active: true}
+                );
                 await sleep(this.otherOptions.wait * 1000);
                 vector = await browser.runtime.sendMessage(
                     'fathomtrainees@mozilla.com',
@@ -62,8 +67,8 @@ class CorpusCollector extends PageVisitor {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
                 // registered. The error goes away on retrying.
-                if (tries >= maxTries) {  // 3 is not enough.
-                    this.setCurrentStatus({message: 'failed: ' + error, isError: true, isFinal: true});
+                if (tries >= maxTries) {  // 100 is not enough.
+                    this.errorAndStop(`failed: ${error}`, tab.id, windowId);
                     break;
                 } else {
                     await sleep(1000);
@@ -77,13 +82,13 @@ class CorpusCollector extends PageVisitor {
             // This presents as an undefined value in a feature vector.
             const nullFeatures = this.nullFeatures(vector.nodes);
             if (nullFeatures) {
+                this.errorAndStop(`failed: rule(s) ${nullFeatures} returned null values`, tab.id, windowId);
+            } else {
                 this.setCurrentStatus({
-                    message: `failed: rule(s) ${nullFeatures} returned null values`,
-                    isError: true,
+                    message: 'vectorized',
+                    index: tab.id,
                     isFinal: true
                 });
-            } else {
-                this.setCurrentStatus({message: 'vectorized', isFinal: true});
             }
         }
     }

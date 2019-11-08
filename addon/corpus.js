@@ -60,7 +60,8 @@ class CorpusCollector extends PageVisitor {
         }
     }
 
-    async processWithinTimeout(tab) {
+    async processWithinTimeout(tab, windowId) {
+        this.setCurrentStatus({message: 'freezing', index: tab.id});
         // Inject dispatcher to listen to the message we then send. Can't get a
         // return value directly out of the content script because webpack
         // wraps our top-level stuff in a function. Instead, we use messaging.
@@ -78,12 +79,16 @@ class CorpusCollector extends PageVisitor {
         return html;
     }
 
-    async processWithoutTimeout(html) {
+    async processWithoutTimeout(html, tabId) {
         // Save html to disk.
-        const filename = this.urls[this.urlIndex].filename;
+        const filename = this.urls[this.tabIdToUrlsIndex.get(tabId)].filename;
         const download_filename = await download(html, {filename});
 
-        this.setCurrentStatus({message: 'downloaded as ' + download_filename, isFinal: true});
+        this.setCurrentStatus({
+          message: 'downloaded as ' + download_filename,
+          index: tabId,
+          isFinal: true
+        });
     }
 }
 
