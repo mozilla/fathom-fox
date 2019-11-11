@@ -39,5 +39,6 @@ function mindlesslyFactoredOutSettings(name) {
 
 export default [
     mindlesslyFactoredOutSettings('contentScript'),
-    mindlesslyFactoredOutSettings('evaluate')
+    mindlesslyFactoredOutSettings('evaluate'),
+    mindlesslyFactoredOutSettings('trainees'),
 ];

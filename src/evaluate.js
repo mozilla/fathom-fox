@@ -7,13 +7,7 @@ class Evaluator {
     }
 
     async evaluate() {
-        let coeffs = (await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {
-                type: 'trainee',
-                traineeId: this.traineeId
-            }
-        )).coeffs;
+        const coeffs = trainees.get(this.traineeId).coeffs;
         const successReport = await this.verboseSuccessReports(coeffs);
         const cost = successReport.reduce((accum, value) => accum + value.cost, 0);
         updateOutputs(coeffs, cost, successReport);
@@ -40,16 +34,13 @@ class Evaluator {
      * @return an Array of {didSucceed: bool, cost: number} objects, one per
      *     page
      */
-    async resultsForPages(coeffs) {
-        return browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {
-                type: 'rulesetSucceededOnTabs',
-                tabIds: this.tabs.map(tab => tab.id),
-                traineeId: this.traineeId,
-                coeffs: Array.from(coeffs.entries())
-            }
-        );
+    resultsForPages(coeffs) {
+        return Promise.all(this.tabs.map(
+            tab => browser.tabs.sendMessage(
+                tab.id,
+                {type: 'rulesetSucceeded',
+                 traineeId: this.traineeId,
+                 coeffs: Array.from(coeffs.entries())})));
     }
 
 }
@@ -67,10 +58,7 @@ async function evaluateTabs() {
         // if you quickly switch away from the tab after clicking the Evaluate button.
         const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
         const rulesetName = document.getElementById('ruleset').value;
-        const viewportSize = (await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
+        const viewportSize = trainees.get(rulesetName).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
         const evaluator = new Evaluator(tabs, rulesetName);
         await evaluator.evaluate();
@@ -137,7 +125,6 @@ function updateOutputs(coeffs, cost, successesOrFailures) {
             div.addEventListener('click', function focusTab() {
                 // Label the bad element if bad, clear it if good:
                 browser.runtime.sendMessage(
-                    'fathomtrainees@mozilla.com',
                     {type: 'labelBadElement',
                      tabId: sf.tabId,
                      traineeId,
