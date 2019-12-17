@@ -81,11 +81,11 @@ function runTraineeOnThisDocument(traineeId, serializedCoeffs, moreReturns) {
  */
 function labelBadElement(traineeId, coeffs) {
     const moreReturns = {};
-    const results = runTraineeOnThisDocument(request.traineeId, request.coeffs, moreReturns);
+    const results = runTraineeOnThisDocument(traineeId, coeffs, moreReturns);
 
     // Delete any old labels saying "BAD [this trainee]" that might be lying
     // around so we don't mix the old with the quite-possibly- revised:
-    const badLabel = 'BAD ' + request.traineeId;
+    const badLabel = 'BAD ' + traineeId;
     for (const oldBadNode of document.querySelectorAll('[data-fathom="' + badLabel.replace(/"/g, '\\"') + '"]')) {
         delete oldBadNode.dataset.fathom;
     }
