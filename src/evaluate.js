@@ -18,7 +18,8 @@ class Evaluator {
      * allows us to show the user which element it found, for debugging.
      */
     async verboseSuccessReports(coeffs) {
-        return (await this.resultsForPages(coeffs)).map((result, i) => ({
+        const results = await this.resultsForPages(coeffs);
+        return results.map((result, i) => ({
             didSucceed: result.didSucceed,
             cost: result.cost,
             filename: urlFilename(this.tabs[i].url),
@@ -28,21 +29,21 @@ class Evaluator {
     /**
      * Send a message to all the pages in the corpus, telling them "Run ruleset
      * ID X, and tell me how its default query (the one with the same out() key
-     * as its ID) did." Do it by delegating to the Fathom Trainees webext,
-     * where user rulesets are developed.
+     * as its ID) did."
      *
      * @return an Array of {didSucceed: bool, cost: number} objects, one per
      *     page
      */
-    resultsForPages(coeffs) {
-        return Promise.all(this.tabs.map(
-            tab => browser.tabs.sendMessage(
-                tab.id,
-                {type: 'rulesetSucceeded',
-                 traineeId: this.traineeId,
-                 coeffs: Array.from(coeffs.entries())})));
+    async resultsForPages(coeffs) {
+        return browser.runtime.sendMessage(
+            {
+                type: 'rulesetSucceededOnTabs',
+                tabIds: this.tabs.map(tab => tab.id),
+                traineeId: this.traineeId,
+                coeffs: Array.from(coeffs.entries())
+            }
+        );
     }
-
 }
 
 async function evaluateTabs() {

@@ -156,8 +156,7 @@ function dispatch(request) {
         case 'rulesetSucceeded':
             try {
                 const ret = runTraineeOnThisDocument(request.traineeId, request.coeffs, {});
-                console.log('runTrainee:', ret);
-                return ret;
+                return Promise.resolve(ret);
             } catch(exc) {
                 throw new Error('Error on ' + window.location + ': ' + exc);
             }
