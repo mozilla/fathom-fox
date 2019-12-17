@@ -3,6 +3,11 @@
     "name": "FathomFox",
     "version": "3.2",
     "description": "Tools for developing Fathom rulesets",
+    "applications": {
+        "gecko": {
+            "id": "fathomfox@mozilla.com"
+        }
+    },
     "icons": {
         "48": "icons/icon.svg",
         "96": "icons/icon.svg"

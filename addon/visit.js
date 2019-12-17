@@ -4,7 +4,10 @@
 class PageVisitor {
     constructor(document) {
         this.urls =[];  // Array of {filename, url} to visit
+        this.tabIdToUrlsIndex = new Map();  // Maps tab IDs to an index in this.urls
         this.urlIndex = undefined;  // index of current URL in this.urls
+        this.tabsDone = undefined;
+        this.maxTabs = 16;
         this.timeout = undefined;
         this.viewportWidth = undefined;
         this.viewportHeight = undefined;
@@ -14,8 +17,10 @@ class PageVisitor {
     }
 
     addEventListeners() {
+        this.doc.addEventListener('fathom:start', this.start.bind(this), false);
         this.doc.addEventListener('fathom:next', this.next.bind(this), false);
         this.doc.addEventListener('fathom:visitPage', this.visitPage.bind(this), false);
+        this.doc.addEventListener('fathom:done', this.done.bind(this), false);
         this.doc.getElementById('pages').addEventListener('keyup', this.setButtonEnabled.bind(this));
         this.doc.getElementById('freeze').onclick = this.visitAllPages.bind(this);
         this.setButtonEnabled();
@@ -48,12 +53,8 @@ class PageVisitor {
         this.doc.getElementById('freeze').disabled = true;
         let windowId = 'uninitialized window ID';
         this.urlIndex = -1;
-
-        // onUpdated, even with all its guard conditions, still fires twice for
-        // every page. Perhaps it fires the second time after the content
-        // scripts get added? Anyway, this sentry variable keeps us from
-        // actually processing a page twice.
-        let mostRecentTabIdUpdated = undefined;
+        this.tabsDone = 0;
+        this.maxTabs = Math.min(this.maxTabs, this.urls.length);
 
         // Listen for tab events before we start creating tabs; this avoids race
         // conditions between creating tabs and waiting for loading to complete.
@@ -76,36 +77,35 @@ class PageVisitor {
                 await setViewportSize(tab, visitor.viewportWidth, visitor.viewportHeight);
                 // The start the freezing process.
                 visitor.doc.dispatchEvent(new CustomEvent(
-                    'fathom:next',
+                    'fathom:start',
                     {detail: windowId}
                 ));
             } else {
                 // Tab that needs to be frozen has loaded.
 
-                if (mostRecentTabIdUpdated !== tabId) {  // We haven't processed this one already.
-                    mostRecentTabIdUpdated = tabId;
-
-                    // Set up the timeout; this covers both the page load and processing time.
-                    const timer = setTimeout(timeout, visitor.timeout * 1000);
-                    async function timeout() {
-                        console.error(tab.url, 'timeout');
-                        clearTimeout(timer);
-                        visitor.setCurrentStatus({message: 'timeout', isFinal: true, isError: true});
-
-                        // Close the tab and process the next url.
-                        await browser.tabs.remove(tab.id);
-                        visitor.doc.dispatchEvent(new CustomEvent(
-                            'fathom:next',
-                            {detail: windowId}
-                        ));
-                    }
-
-                    // Process this page.
+                // Set up the timeout; this covers both the page load and processing time.
+                const timer = setTimeout(timeout, visitor.timeout * 1000);
+                async function timeout() {
+                    console.error(tab.url, 'timeout');
+                    clearTimeout(timer);
+                    visitor.setCurrentStatus({
+                        message: 'timeout',
+                        index: tab.id,
+                        isFinal: true,
+                        isError: true
+                    });
+                    // Stop everything (no point in continuing if we have an error)
                     visitor.doc.dispatchEvent(new CustomEvent(
-                        'fathom:visitPage',
-                        {detail: {windowId: windowId, timer: timer, tabId: tab.id}}
+                      'fathom:done',
+                      {detail: {windowId: windowId, success: false}}
                     ));
                 }
+
+                // Process this page.
+                visitor.doc.dispatchEvent(new CustomEvent(
+                  'fathom:visitPage',
+                  {detail: {windowId: windowId, timer: timer, tabId: tab.id}}
+                ));
             }
         }
         this.tabUpdateListener = onUpdated;
@@ -117,29 +117,52 @@ class PageVisitor {
         windowId = (await browser.windows.create({url: '/pages/blank.html'})).id;
     }
 
+    // Start processing by triggering ``maxTabs`` next events. This will load
+    // a URL for each event and begin visiting pages in parallel.
+    async start(event) {
+        const windowId = event.detail;
+        for (let i = 0; i < this.maxTabs; i++) {
+            this.doc.dispatchEvent(new CustomEvent(
+              'fathom:next',
+              {detail: windowId}
+            ));
+        }
+    }
+
     // Load next tab from this.urls, or close the window if we're done.
     async next(event) {
         const windowId = event.detail;
 
-        this.urlIndex++;
-        if (this.urlIndex >= this.urls.length) {
-            // Do final cleanup.
-            await this.processAtEndOfRun();
-            browser.tabs.onUpdated.removeListener(this.tabUpdateListener);
-            this.tabUpdateListener = undefined;
-            browser.windows.remove(windowId);
-            this.doc.getElementById('freeze').disabled = false;
-            return;
+        if (this.urlIndex < this.urls.length - 1) {
+            this.urlIndex++;
+            // Capture the current urlIndex here so we can rely on its value in
+            // the success callback for ``browser.tabs.create()``.
+            const urlIndexForMap = this.urlIndex;
+            // Create a new tab with the current url.
+            // The tabs.onUpdated handler in visitAllPages() will dispatch a fathom:freeze
+            // event when the tab has completed loading.
+            browser.tabs.create({
+                windowId: windowId,
+                url: this.urls[this.urlIndex].url,
+                active: false,
+            }).then(tab => {
+                this.tabIdToUrlsIndex.set(tab.id, urlIndexForMap);
+                this.setCurrentStatus({message: 'loading', index: tab.id});
+            }).catch(error => {
+                // TODO: How to handle a failure in loading the tab since we won't have a status item to display an error for?
+                console.error(error);
+            });
+        } else {
+            // We cannot immediately assume we're done because there may still
+            // be some tabs that need to finish up their last url.
+            this.tabsDone++;
+            if (this.tabsDone === this.maxTabs) {
+                this.doc.dispatchEvent(new CustomEvent(
+                  'fathom:done',
+                  {detail: {windowId: windowId, success: true}}
+                ));
+            }
         }
-
-        // Create a new tab with the current url.
-        // The tabs.onUpdated handler in visitAllPages() will dispatch a fathom:freeze
-        // event when the tab has completed loading.
-        this.setCurrentStatus({message: 'loading'});
-        browser.tabs.create({
-            windowId: windowId,
-            url: this.urls[this.urlIndex].url,
-        });
     }
 
     // A page to be frozen has finished loading. Do something to it.
@@ -148,15 +171,15 @@ class PageVisitor {
         const timer = event.detail.timer;
         const tab = (await browser.tabs.get(event.detail.tabId));
 
-        this.setCurrentStatus({message: 'freezing'});
         try {
-            const result = await this.processWithinTimeout(tab);
+            const result = await this.processWithinTimeout(tab, windowId);
 
             // Clear timeout here so we don't bail out while writing to disk:
             clearTimeout(timer);
 
-            await this.processWithoutTimeout(result);
+            await this.processWithoutTimeout(result, tab.id);
         } catch (e) {
+            clearTimeout(timer);
             // Beware: control flow can pass from the very end of the `try` block
             // above to here, for example when "Message manager disconnected"
             // happens in a tab we just froze. This is the motivation behind the
@@ -170,19 +193,28 @@ class PageVisitor {
             } else if (e.message === 'Message manager disconnected') {
                 error = "tab unexpectedly closed (message manager disconnected)";
             }
-            this.setCurrentStatus({
-                message: 'freezing failed: ' + error, isError: true, isFinal: true
-            });
-        } finally {
-            clearTimeout(timer);
-            await browser.tabs.remove(tab.id);
+            this.errorAndStop(`freezing failed: ${error}`, tab.id, windowId);
         }
 
+        await browser.tabs.remove(tab.id);
         // Done with this url, trigger loading of the next.
         this.doc.dispatchEvent(new CustomEvent(
-            'fathom:next',
-            {detail: windowId}
+          'fathom:next',
+          {detail: windowId}
         ));
+    }
+
+    // Do final cleanup and close the window.
+    async done(event) {
+        // If there was an error, we skip processing the results
+        if (event.detail.success) {
+            await this.processAtEndOfRun();
+        }
+        const windowId = event.detail.windowId;
+        browser.tabs.onUpdated.removeListener(this.tabUpdateListener);
+        this.tabUpdateListener = undefined;
+        browser.windows.remove(windowId);
+        this.doc.getElementById('freeze').disabled = false;
     }
 
     // This runs before the first visited page is loaded.
@@ -190,7 +222,7 @@ class PageVisitor {
     }
 
     // Do per-tab stuff that should be subject to the timeout.
-    async processWithinTimeout(tab) {
+    async processWithinTimeout(tab, windowId) {
     }
 
     // Do per-tab stuff that should happen after the timeout is disabled. This
@@ -219,14 +251,28 @@ class PageVisitor {
         throw new Error('You must implement getViewportHeightAndWidth()')
     }
 
-    setCurrentStatus({message, isFinal=false, isError=false}) {
+    errorAndStop(error_message, tabId, windowId) {
+        this.setCurrentStatus({
+            message: error_message,
+            index: tabId,
+            isError: true,
+            isFinal: true
+        });
+        this.doc.dispatchEvent(new CustomEvent(
+          'fathom:done',
+          {detail: {windowId: windowId, success: false}}
+        ));
+
+    }
+
+    setCurrentStatus({message, index, isFinal=false, isError=false}) {
         // Add or update the status entry for the current url in the UI.
         // Messages marked as 'final' cannot be overwritten.
 
-        let li = this.doc.getElementById('u' + this.urlIndex);
+        let li = this.doc.getElementById('u' + index);
         if (!li) {
             li = this.doc.createElement('li');
-            li.setAttribute('id', 'u' + this.urlIndex);
+            li.setAttribute('id', 'u' + index);
             this.doc.getElementById('status').appendChild(li);
         }
 
@@ -241,7 +287,7 @@ class PageVisitor {
         }
 
         emptyElement(li);
-        const urlObject = this.urls[this.urlIndex];
+        const urlObject = this.urls[this.tabIdToUrlsIndex.get(index)];
         const url = (urlObject === undefined) ? 'no URL' : urlObject.url;  // 'no URL' should never happen but comes in handy when avoiding the out-of-bound array access error when debugging this sprawling state machine.
         li.appendChild(this.doc.createTextNode(url + ': ' + message));
         if (isError) {
