@@ -54,7 +54,7 @@ class CorpusCollector extends PageVisitor {
                 tries++;
                 await sleep(this.otherOptions.wait * 1000);
                 vector = await browser.runtime.sendMessage(
-                    'fathomtrainees@mozilla.com',  // Can we change this to browser.tabs.sendMessage and cut out the middleman?
+                    // Can we change this to browser.tabs.sendMessage and cut out the middleman?
                     {type: 'vectorizeTab',
                      tabId: tab.id,
                      traineeId: this.traineeId});

@@ -166,7 +166,7 @@ function dispatch(request) {
             break;
 
         case 'vectorizeTab':
-            return vectorizeTab(request.traineeId);
+            return Promise.resolve(vectorizeTab(request.traineeId));
 
         default:
             return Promise.resolve({});

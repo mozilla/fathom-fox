@@ -18,8 +18,8 @@ function handleBackgroundScriptMessage(request, sender, sendResponse) {
                .then(sendResponse);
         return true;  // so sendResponse hangs around after we return
     } else if (request.type === 'vectorizeTab') {
-        const vector = browser.tabs.sendMessage(request.tabId, request);
-        sendResponse(vector);
+        browser.tabs.sendMessage(request.tabId, request).then(sendResponse);
+        return true;
     } else if (request.type === 'labelBadElement') {
         // Just forward these along to the correct tab:
         browser.tabs.sendMessage(request.tabId, request)

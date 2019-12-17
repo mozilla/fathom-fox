@@ -28,7 +28,7 @@ trainees.set(
      // Bias is -139.3106 for this example, though that isn't needed until
      // production.
 
-     // viewportSize: {width: 1024, height: 768},
+     viewportSize: {width: 1024, height: 768},
      //
      // The content-area size to use while training. Defaults to 1024x768.
 
