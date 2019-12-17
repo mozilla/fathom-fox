@@ -3,22 +3,29 @@ import {ancestors} from 'fathom-web/utilsForFrontend';
 
 
 /**
- * Rulesets to train.
+ * Rulesets to vectorize or debug
  *
  * More mechanically, a map of names to {coeffs, rulesetMaker, ...} objects.
- * rulesetMaker is a function that returns a ruleset. coeffs is typically the
- * best-yet-found set of coefficients for a ruleset. The rulesets you specify
- * here show up in the FathomFox Trainer UI, from which you can kick off a
- * training run. However, the neural-net-based trainer is a better bet these
- * days. The FathomFox Trainer remains because it is a useful debugging tool
- * when run for 1 iteration, showing what the ruleset chose wrong.
+ * See below for details. The rulesets you specify here show up in the
+ * FathomFox UI, from which you can debug a ruleset or turn it into vectors for
+ * use with the command-line trainer.
  */
 const trainees = new Map();
 
+/**
+ * An example ruleset. Replace it with your own.
+ *
+ * This one finds the full-screen, content-blocking overlays that often go
+ * behind modal popups. It's not the most well-honed thing, but it's simple and
+ * short.
+ */
 trainees.set(
-    // A ruleset that finds the full-screen, content-blocking overlays that
-    // often go behind modal popups
+    // The ID for this ruleset, which must be the same as the Fathom type you
+    // are evaluating, if you are using the Evaluator:
     'overlay',
+
+    // Here we paste in coefficients from fathom-train. This lets us use the
+    // Evaluator to see what Fathom is getting wrong:
     {coeffs: new Map([  // [rule name, coefficient]
         ['big', 50.4946],
         ['nearlyOpaque', 48.6396],
@@ -29,21 +36,7 @@ trainees.set(
      // production.
 
      viewportSize: {width: 1024, height: 768},
-     //
      // The content-area size to use while training. Defaults to 1024x768.
-
-     // DEPRECATED:
-     // successFunction: (facts, traineeId) => trueOrFalse,
-     //
-     // By default, elements with a `data-fathom` attribute that matches the
-     // trainee ID are considered a successful find for the ruleset.
-     //
-     // The `successFunction` property allows for alternative success
-     // functions. A success function receives two arguments--a BoundRuleset
-     // and the current trainee ID--and returns whether the ruleset succeeded.
-     //
-     // The default function for this example ruleset is essentially...
-     // successFunction: facts.get('overlay')[0].element.dataset.fathom === 'overlay'
 
      vectorType: 'overlay',
      // The type of node to extract features from when using the Vectorizer

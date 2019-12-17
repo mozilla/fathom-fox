@@ -1,7 +1,7 @@
 {
   "name": "fathom-fox",
   "version": "3.2",
-  "description": "Tools for collecting a Fathom training corpus and, eventually, debugging a ruleset",
+  "description": "Tools for collecting a Fathom training corpus and developing rulesets",
   "scripts": {
     "build": "yarn install --ignore-engines && rollup -c",
     "watch": "rollup -c -w",
