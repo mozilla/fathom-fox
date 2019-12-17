@@ -53,11 +53,7 @@ class CorpusCollector extends PageVisitor {
             try {
                 tries++;
                 await sleep(this.otherOptions.wait * 1000);
-                vector = await browser.runtime.sendMessage(
-                    // Can we change this to browser.tabs.sendMessage and cut out the middleman?
-                    {type: 'vectorizeTab',
-                     tabId: tab.id,
-                     traineeId: this.traineeId});
+                vector = await browser.tabs.sendMessage(tab.id, {type: 'vectorizeTab', traineeId: this.traineeId});
             } catch (error) {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
