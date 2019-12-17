@@ -125,11 +125,11 @@ function updateOutputs(coeffs, cost, successesOrFailures) {
             div.firstChild.textContent = sf.filename;
             div.addEventListener('click', function focusTab() {
                 // Label the bad element if bad, clear it if good:
-                browser.runtime.sendMessage(
+                browser.tabs.sendMessage(
+                    sf.tabId,
                     {type: 'labelBadElement',
-                     tabId: sf.tabId,
                      traineeId,
-                     coeffs: coeffs});
+                     coeffs});
                 browser.tabs.update(sf.tabId, {active: true});
                 // Update the Fathom dev tools panel if it's open:
                 browser.runtime.sendMessage({type: 'refresh'});
