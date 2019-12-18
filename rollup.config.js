@@ -33,7 +33,10 @@ function mindlesslyFactoredOutSettings(name) {
                     { src: 'node_modules/simmerjs/dist/simmer.js', dest: 'addon' },
                 ]
             }),
-        ]
+        ],
+        watch: {
+            chokidar: false
+        }
     }
 }
 
