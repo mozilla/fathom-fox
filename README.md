@@ -6,20 +6,29 @@ A set of tools for developing [Fathom](http://mozilla.github.io/fathom/) ruleset
 
 Here is an example of how you might use FathomFox to develop a Fathom ruleset that finds the semi-transparent overlays behind in-page pop-ups:
 
-1. Fork, clone, and install the [Fathon-Trainees](https://github.com/mozilla/fathom-trainees/) repository as per its instructions.
-2. Install dependencies and build with `yarn build`, then run `yarn browser` to launch Firefox. (`yarn install` (or just `yarn`) will fail with an error about an incompatible node version, so be sure to use `yarn build` to install modules, or pass the `--ignore-engines` switch to `yarn install`.)
-3. Using `about:debugging`, install your fathom-trainees extension by selecting its `addon/manifest.json` file.
-4. Install [Fathom-Fox](https://addons.mozilla.org/firefox/addon/fathomfox/).
-5. Navigate to a web page that has what you're trying to recognize: a background overlay behind a modal dialog.
-6. Using Firefox's developer tools inspector, select the overlay element.
-7. Switch to the Fathom developer tools tab, enter "overlay" in the label field, and click Save Page.
-8. After you have labeled about 20 pages like this, click the FathomFox icon in the main toolbar, and choose Vectorizer.
-9. Use the Vectorizer to mash down your labeled pages into vectors of floats and save them as a JSON file.
-10. [Use the commandline trainer](https://mozilla.github.io/fathom/training.html#running-the-trainer) to imbibe the vectors and come up with an optimal set of coefficients.
+### Get FathomFox Running
 
-## Where Your Ruleset Goes
+1. Clone the [FathomFox repository](https://github.com/mozilla/fathom-fox/). (This is needed to author rulesets. If you wish to merely collect corpus, you may install FathomFox from [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/fathomfox/).)
+2. From within the checkout, install dependencies: `yarn run build`.
+3. Run a clean copy of Firefox with FathomFox installed: `yarn run browser`.
+4. Run `yarn run watch` in a separate terminal. This will keep your running copy of FathomFox up to date as you edit your ruleset.
 
-So that you don't have to fork FathomFox itself, the ruleset you're developing goes into a second web extension that you author, the so-called "trainee" extension. An example is [Fathom Trainees](https://github.com/mozilla/fathom-trainees), which you can fork. See its readme for more.
+### Collect a Corpus
+
+1. Navigate to a web page that has what you're trying to recognize: a background overlay behind a modal dialog.
+2. Using Firefox's developer tools inspector, select the overlay element.
+3. Switch to the Fathom developer tools tab, enter "overlay" in the label field, and click Save Page.
+4. Label about 20 additional pages like this.
+
+### Write and Train a Ruleset
+
+1. Take a first pass at [writing a ruleset](https://mozilla.github.io/fathom/using.html) to recognize the overlays, and put it in `fathom-fox/src/trainees.js`, replacing the example ruleset. (Ultimately, you should keep `trainees.js` with your own project and hard-link it into FathomFox.)
+2. Click the FathomFox icon in the main toolbar, and choose Vectorizer.
+3. Use the Vectorizer to boil down your labeled pages into vectors of floats and save them as a JSON file.
+4. [Use the commandline trainer](https://mozilla.github.io/fathom/training.html#running-the-trainer) to imbibe the vectors and come up with an optimal set of coefficients.
+5. Use the trained ruleset in your application.
+
+[A more detailed treatment of Fathom authoring workflow](https://mozilla.github.io/fathom/training.html) is in the Fathom manual.
 
 ## Corpus Collector
 
@@ -31,7 +40,7 @@ Fathom is a supervised-learning system. FathomFox's Developer Tools panel helps 
 
 Load a page, right-click the element you want to label, and choose Inspect Element, which will open Firefox's developer tools. Switch to the Fathom tab, and enter the label for the inspected element.
 
-You can apply as many labels as you want to various page elements, though there is a limit of one label per element at the moment. Finally, click Save Page to pull down a frozen version of the page. That sample is then ready to be used with the Trainer.
+You can use as many distinct labels as you want, though there is a limit of one label per element at the moment. Finally, click Save Page to pull down a frozen version of the page. That sample is then ready to be used with the Trainer.
 
 ## Vectorizer
 
@@ -39,32 +48,24 @@ Once you've labeled your corpus, you'll need a file of feature vectors you can f
 
 1. Open the Vectorizer from FathomFox's toolbar button. 
 2. Give the Vectorizer a list of your labeled pages' filenames.
-3. Change the Base URL to the address from which you're serving the pages.
+3. Change the Base URL to the address from which you're serving the pages with `fathom-serve`.
 4. Click Vectorize, the pages will flash by, and the vectors will appear in your Downloads folder.
 
 The Retry on Error checkbox should generally stay on, to work around apparently unavoidable spurious errors in the web extension communication APIs. However, turn it off during ruleset debugging; that way, you can see your actual mistakes more promptly.
 
 ## Evaluator
 
-Once you have a decent set of coefficients and biases computed, sub them into your ruleset, open some troublesome pages in a Firefox window, and invoke the FathomFox Evaluator. From there, click Evaluate to run the ruleset over the loaded tabs. Any pages with misrecognized nodes will show up in red; click those to see which element was wrongly selected. Unfortunately, you need to manually show the dev tools and switch to the Fathom panel once you get to the page in question; there aren't yet web extension APIs to do it automatically. Once you do, you'll see a quick and dirty representation of the "bad" element: a new label called "BAD [the trainee ID]". Be sure to delete this if you choose to re-save the page for some reason. Also note that the BAD label is created only when the bad cell is clicked, for speed; if you navigate to the bad page manually, the label won't be there, or there might be an old label from a previous iteration.
+Once you have a decent set of coefficients and biases computed, paste them into `trainees.js`, open some troublesome pages in a Firefox window, and invoke the FathomFox Evaluator. From there, click Evaluate to run the ruleset over the loaded tabs. Any pages with misrecognized nodes will show up in red; click those to see which element was wrongly selected. Unfortunately, you need to manually show the dev tools and switch to the Fathom panel once you get to the page in question; there aren't yet web extension APIs to do it automatically. Once you do, you'll see a quick and dirty representation of the "bad" element: a new label called "BAD [the trainee ID]". Be sure to delete this if you choose to re-save the page for some reason. Also note that the BAD label is created only when the bad cell is clicked, for speed; if you navigate to the bad page manually, the label won't be there, or there might be an old label from a previous iteration.
 
 ## Tips
 
 * Before freezing pages with the Developer Tools panel, use Firefox's Responsive Design mode (command-option-M) to set a repeatable 1024x768 window size. The Vectorizer automatically sets this same size by default. This will ensure that the proper CSS (which may be driven by media queries) will be frozen (and later reloaded) with the page.
-* For maximum fidelity, do your corpus capture in a clean copy of Firefox with no other add-ons. Some ad blockers will make changes to the DOM, like adding style attributes to ad iframes to hide them.
-* You can press `Ctrl+Shift+O` to save and download a page for pages with hover over elements you want visible upon saving.
+* For maximum fidelity, do your corpus capture in a clean copy of Firefox with no other add-ons. (This will automatically happen if you invoke FathomFox with `yarn run browser`. Some ad blockers will make changes to the DOM, like adding style attributes to ad iframes to hide them.
+* You can press `Ctrl+Shift+O` to save and download a page for pages with hover-to-show elements you want visible upon saving.
 
 ## Thanks
 
 Thanks to Treora for his excellent freeze-dry library!
-
-## Development
-
-1. Install Firefox Nightly or Firefox Developer Edition.
-2. Check out the source code.
-3. `cd fathom-fox`
-4. Install dependencies: `yarn install --ignore-engines`. (Note that `npm` will not work, as it chooses different dependencies.)
-5. Bundle up the extension, and launch a new copy of Nightly with it already installed: `yarn run build`, then `WEB_EXT_FIREFOX=nightly yarn browser`
 
 ## Version History
 
