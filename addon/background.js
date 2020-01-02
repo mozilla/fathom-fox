@@ -1,12 +1,10 @@
-/**
-  * Dispatch the message that runs a ruleset on all open tabs. It's necessary
-  * to do this in the background script so we have permission to call the APIs
-  * we need.
-  */
+/** Dispatch messages sent to the background script. */
 function handleBackgroundScriptMessage(request, sender, sendResponse) {
     if (request.type === 'rulesetSucceededOnTabs') {
-        // Run a given ruleset on a given set of tabs, and return an array
-        // of bools saying whether they got the right answer on each.
+        // Run a given ruleset on a given set of tabs, and return an array of
+        // bools saying whether they got the right answer on each. It's
+        // necessary to do this in the background script so we have permission
+        // to call the APIs we need.
         Promise.all(request.tabIds.map(
                         tabId => browser.tabs.sendMessage(
                             tabId,
@@ -15,6 +13,9 @@ function handleBackgroundScriptMessage(request, sender, sendResponse) {
                              coeffs: request.coeffs})))
                .then(sendResponse);
         return true;  // so sendResponse hangs around after we return
+    } else if (request.type === 'refresh') {
+        // Bridge between content and the devtools panel.
+        browser.runtime.sendMessage({type: 'refresh'}).catch(() => {});
     }
 }
 browser.runtime.onMessage.addListener(handleBackgroundScriptMessage);
@@ -53,13 +54,6 @@ function connectADevPanel(port) {
     }
 }
 browser.runtime.onConnect.addListener(connectADevPanel);
-
-// Bridge between content and the devtools panel.
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.type === 'refresh') {
-        browser.runtime.sendMessage({type: 'refresh'}).catch(() => {});
-    }
-});
 
 // Update devtools panel when tab navigates to new page.
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tabInfo) => {
