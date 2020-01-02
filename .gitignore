@@ -3,5 +3,5 @@
 /addon/web-ext-artifacts
 /addon/evaluate.js
 /addon/simmer.js
-/addon/trainees.js
+/addon/rulesets.js
 /package-lock.json

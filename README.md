@@ -22,7 +22,7 @@ Here is an example of how you might use FathomFox to develop a Fathom ruleset th
 
 ### Write and Train a Ruleset
 
-1. Take a first pass at [writing a ruleset](https://mozilla.github.io/fathom/using.html) to recognize the overlays, and put it in `fathom-fox/src/trainees.js`, replacing the example ruleset. (Ultimately, you should keep `trainees.js` with your own project and hard-link it into FathomFox.)
+1. Take a first pass at [writing a ruleset](https://mozilla.github.io/fathom/using.html) to recognize the overlays, and put it in `fathom-fox/src/rulesets.js`, replacing the example ruleset. (Ultimately, you should keep `rulesets.js` with your own project and hard-link it into FathomFox.)
 2. Click the FathomFox icon in the main toolbar, and choose Vectorizer.
 3. Use the Vectorizer to boil down your labeled pages into vectors of floats and save them as a JSON file.
 4. [Use the commandline trainer](https://mozilla.github.io/fathom/training.html#running-the-trainer) to imbibe the vectors and come up with an optimal set of coefficients.
@@ -55,7 +55,7 @@ The Retry on Error checkbox should generally stay on, to work around apparently 
 
 ## Evaluator
 
-Once you have a decent set of coefficients and biases computed, paste them into `trainees.js`, open some troublesome pages in a Firefox window, and invoke the FathomFox Evaluator. From there, click Evaluate to run the ruleset over the loaded tabs. Any pages with misrecognized nodes will show up in red; click those to see which element was wrongly selected. Unfortunately, you need to manually show the dev tools and switch to the Fathom panel once you get to the page in question; there aren't yet web extension APIs to do it automatically. Once you do, you'll see a quick and dirty representation of the "bad" element: a new label called "BAD [the trainee ID]". Be sure to delete this if you choose to re-save the page for some reason. Also note that the BAD label is created only when the bad cell is clicked, for speed; if you navigate to the bad page manually, the label won't be there, or there might be an old label from a previous iteration.
+Once you have a decent set of coefficients and biases computed, paste them into `rulesets.js`, open some troublesome pages in a Firefox window, and invoke the FathomFox Evaluator. From there, click Evaluate to run the ruleset over the loaded tabs. Any pages with misrecognized nodes will show up in red; click those to see which element was wrongly selected. Unfortunately, you need to manually show the dev tools and switch to the Fathom panel once you get to the page in question; there aren't yet web extension APIs to do it automatically. Once you do, you'll see a quick and dirty representation of the "bad" element: a new label called "BAD [the trainee ID]". Be sure to delete this if you choose to re-save the page for some reason. Also note that the BAD label is created only when the bad cell is clicked, for speed; if you navigate to the bad page manually, the label won't be there, or there might be an old label from a previous iteration.
 
 ## Tips
 

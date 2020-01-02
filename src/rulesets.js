@@ -3,12 +3,14 @@ import {ancestors, isVisible, linearScale, rgbaFromString, saturation} from 'fat
 
 
 /**
- * Rulesets to vectorize or debug
+ * Rulesets to vectorize or debug (and metadata about them)
  *
- * More mechanically, a map of names to {coeffs, rulesetMaker, ...} objects.
- * See below for details. The rulesets you specify here show up in the
+ * More mechanically, a map of names to {coeffs, rulesetMaker, ...} objects,
+ * which we call "trainees". The rulesets you specify here show up in the
  * FathomFox UI, from which you can debug a ruleset or turn it into vectors for
- * use with the command-line trainer.
+ * use with the command-line trainer. Most often, all the entries here point to
+ * the same ruleset but have different values of `vectorType` for separately
+ * training each type of thing the ruleset recognizes.
  */
 const trainees = new Map();
 
