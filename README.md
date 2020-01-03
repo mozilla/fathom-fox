@@ -69,7 +69,7 @@ Thanks to Treora for his excellent freeze-dry library!
 
 ## Development
 
-To work on FathomFox itself, do the steps under "Get FathomFox Running" above.
+To work on FathomFox itself, do the steps under [Get FathomFox Running](#get-fathomfox-running) above.
 
 ## Version History
 
