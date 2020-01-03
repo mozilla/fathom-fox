@@ -46,7 +46,7 @@ class CorpusCollector extends PageVisitor {
 
     async processWithinTimeout(tab, windowId) {
         this.setCurrentStatus({message: 'vectorizing', index: tab.id});
-        // Have fathom-trainees vectorize the page:
+        // Have the content script vectorize the page:
         let vector = undefined;
         let tries = 0;
         const maxTries = this.otherOptions.retryOnError ? 100 : 1;
@@ -58,11 +58,7 @@ class CorpusCollector extends PageVisitor {
                   {active: true}
                 );
                 await sleep(this.otherOptions.wait * 1000);
-                vector = await browser.runtime.sendMessage(
-                    'fathomtrainees@mozilla.com',
-                    {type: 'vectorizeTab',
-                     tabId: tab.id,
-                     traineeId: this.traineeId});
+                vector = await browser.tabs.sendMessage(tab.id, {type: 'vectorizeTab', traineeId: this.traineeId});
             } catch (error) {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
@@ -110,13 +106,7 @@ class CorpusCollector extends PageVisitor {
     async processAtBeginningOfRun() {
         this.vectors = [];
         this.traineeId = this.doc.getElementById('ruleset').value;
-        this.trainee = await browser.runtime.sendMessage(
-          'fathomtrainees@mozilla.com',
-          {
-              type: 'trainee',
-              traineeId: this.traineeId
-          }
-        );
+        this.trainee = trainees.get(this.traineeId);
     }
 
     async processAtEndOfRun() {

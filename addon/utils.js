@@ -71,14 +71,7 @@ function sleep(ms) {
 async function initRulesetMenu(goButton) {
     // Draw Ruleset menu:
     let traineeKeys;
-    try {
-        traineeKeys = await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'traineeKeys'});
-    } catch (e) {
-        // Fathom Trainees webext is absent.
-        traineeKeys = [];
-    }
+    traineeKeys = Array.from(trainees.keys());
     const menu = document.getElementById('ruleset');
     if (traineeKeys.length) {
         for (const traineeKey of traineeKeys) {

@@ -9,13 +9,13 @@ const webpackPostcss = require('./src/rollup-plugin-webpack-postcss/rollup-plugi
 /**
  * Return typical rollup settings for a file of a given name.
  */
-function mindlesslyFactoredOutSettings(name) {
+function mindlesslyFactoredOutSettings(name, globalVarName) {
     return {
         input: 'src/' + name + '.js',
         output: {
             file: 'addon/' + name + '.js',
             format: 'iife',
-            name  // Convention: name the var the same thing.
+            name: globalVarName || name  // Convention: name the var the same thing.
         },
         plugins: [
             resolve({preferBuiltins: true}),
@@ -33,11 +33,15 @@ function mindlesslyFactoredOutSettings(name) {
                     { src: 'node_modules/simmerjs/dist/simmer.js', dest: 'addon' },
                 ]
             }),
-        ]
+        ],
+        watch: {
+            chokidar: false
+        }
     }
 }
 
 export default [
     mindlesslyFactoredOutSettings('contentScript'),
-    mindlesslyFactoredOutSettings('evaluate')
+    mindlesslyFactoredOutSettings('evaluate'),
+    mindlesslyFactoredOutSettings('rulesets', 'trainees'),
 ];

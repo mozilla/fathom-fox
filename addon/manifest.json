@@ -23,7 +23,7 @@
     },
     "content_scripts": [{
         "matches": ["<all_urls>"],
-        "js": ["utils.js", "contentScript.js", "simmer.js"]
+        "js": ["rulesets.js", "utils.js", "contentScript.js", "simmer.js"]
     }],
     "web_accessible_resources": [
         "simmer.js"

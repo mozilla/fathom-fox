@@ -7,13 +7,7 @@ class Evaluator {
     }
 
     async evaluate() {
-        let coeffs = (await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {
-                type: 'trainee',
-                traineeId: this.traineeId
-            }
-        )).coeffs;
+        const coeffs = trainees.get(this.traineeId).coeffs;
         const successReport = await this.verboseSuccessReports(coeffs);
         const cost = successReport.reduce((accum, value) => accum + value.cost, 0);
         updateOutputs(coeffs, cost, successReport);
@@ -24,7 +18,8 @@ class Evaluator {
      * allows us to show the user which element it found, for debugging.
      */
     async verboseSuccessReports(coeffs) {
-        return (await this.resultsForPages(coeffs)).map((result, i) => ({
+        const results = await this.resultsForPages(coeffs);
+        return results.map((result, i) => ({
             didSucceed: result.didSucceed,
             cost: result.cost,
             filename: urlFilename(this.tabs[i].url),
@@ -34,15 +29,13 @@ class Evaluator {
     /**
      * Send a message to all the pages in the corpus, telling them "Run ruleset
      * ID X, and tell me how its default query (the one with the same out() key
-     * as its ID) did." Do it by delegating to the Fathom Trainees webext,
-     * where user rulesets are developed.
+     * as its ID) did."
      *
      * @return an Array of {didSucceed: bool, cost: number} objects, one per
      *     page
      */
     async resultsForPages(coeffs) {
         return browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
             {
                 type: 'rulesetSucceededOnTabs',
                 tabIds: this.tabs.map(tab => tab.id),
@@ -51,7 +44,6 @@ class Evaluator {
             }
         );
     }
-
 }
 
 async function evaluateTabs() {
@@ -67,10 +59,7 @@ async function evaluateTabs() {
         // if you quickly switch away from the tab after clicking the Evaluate button.
         const tabs = (await browser.tabs.query({currentWindow: true, active: false}));
         const rulesetName = document.getElementById('ruleset').value;
-        const viewportSize = (await browser.runtime.sendMessage(
-            'fathomtrainees@mozilla.com',
-            {type: 'trainee',
-             traineeId: rulesetName})).viewportSize || {width: 1024, height: 768};
+        const viewportSize = trainees.get(rulesetName).viewportSize || {width: 1024, height: 768};
         await setViewportSize(tabs[0], viewportSize.width, viewportSize.height);  // for consistent element sizing in samples due to text wrap, etc.
         const evaluator = new Evaluator(tabs, rulesetName);
         await evaluator.evaluate();
@@ -136,12 +125,11 @@ function updateOutputs(coeffs, cost, successesOrFailures) {
             div.firstChild.textContent = sf.filename;
             div.addEventListener('click', function focusTab() {
                 // Label the bad element if bad, clear it if good:
-                browser.runtime.sendMessage(
-                    'fathomtrainees@mozilla.com',
+                browser.tabs.sendMessage(
+                    sf.tabId,
                     {type: 'labelBadElement',
-                     tabId: sf.tabId,
                      traineeId,
-                     coeffs: coeffs});
+                     coeffs});
                 browser.tabs.update(sf.tabId, {active: true});
                 // Update the Fathom dev tools panel if it's open:
                 browser.runtime.sendMessage({type: 'refresh'});

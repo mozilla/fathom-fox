@@ -1,7 +1,7 @@
 {
   "name": "fathom-fox",
   "version": "3.2",
-  "description": "Tools for collecting a Fathom training corpus and, eventually, debugging a ruleset",
+  "description": "Tools for collecting a Fathom training corpus and developing rulesets",
   "scripts": {
     "build": "yarn install --ignore-engines && rollup -c",
     "watch": "rollup -c -w",
@@ -10,6 +10,7 @@
   },
   "license": "MPL-2.0",
   "devDependencies": {
+    "fathom-web": "^3.1.0",
     "freeze-dry": "^0.2.4",
     "rollup": "^1.17.0",
     "rollup-plugin-commonjs": "^10.0.1",
