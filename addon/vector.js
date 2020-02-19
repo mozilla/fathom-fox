@@ -14,7 +14,10 @@ class CorpusCollector extends PageVisitor {
         options.timeout = 9999;  // effectively none
 
         // Load each url line-by-line from the textarea.
-        const prefix = this.doc.getElementById('baseUrl').value;
+        let prefix = this.doc.getElementById('baseUrl').value;
+        if (!prefix.endsWith('/')) {
+            prefix += '/';
+        }
         options.urls = this.doc
             .getElementById('pages')
             .value
