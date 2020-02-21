@@ -63,6 +63,11 @@ function runTraineeOnThisDocument(traineeId, serializedCoeffs, moreReturns) {
     const trainee = trainees.get(traineeId);
     const facts = trainee.rulesetMaker('dummy').against(window.document);
     facts.setCoeffsAndBiases(serializedCoeffs);
+    // successFunction, used only by the Evaluator, has never been documented
+    // or used and so can be replaced or removed. It is likely
+    // https://github.com/mozilla/fathom- fox/issues/39 will obsolete the
+    // entire Evaluator and show confidences on all found elements rather than
+    // limiting feedback to a single "bad" element.
     const successFunc = trainee.successFunction || foundLabelIsTraineeId;
     const didSucceed = successFunc(facts, traineeId, moreReturns);
     return {didSucceed, cost: moreReturns.cost || (1 - didSucceed)};
@@ -116,10 +121,11 @@ function vectorizeTab(traineeId) {
     const boundRuleset = trainee.rulesetMaker('dummy').against(window.document);
     const fnodes = boundRuleset.get(type(trainee.vectorType));
     const path = window.location.pathname;
+    const isTarget = trainee.isTarget || (fnode => fnode.element.dataset.fathom === traineeId);
     const perNodeStuff = fnodes.map(function featureVectorForFnode(fnode) {
         const scoreMap = fnode.scoresSoFarFor(trainee.vectorType);
         return {
-            isTarget: fnode.element.dataset.fathom === traineeId,
+            isTarget: isTarget(fnode),
             // Loop over ruleset.coeffs in order, and spit out each score:
             features: Array.from(trainee.coeffs.keys()).map(ruleName => scoreMap.get(ruleName))
         };

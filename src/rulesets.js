@@ -127,6 +127,12 @@ trainees.set(
             ]);
             return rules;
         }
+
+     // isTarget is an optional function which returns whether the Vectorizer
+     // should consider a fnode a target. The default is to consider it a
+     // target iff its ``data-fathom`` attribute === the trainee ID.
+     //
+     // isTarget: fnode => fnode.element.dataset.fathom === 'foo'
     }
 );
 
