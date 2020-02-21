@@ -22,7 +22,7 @@ const trainees = new Map();
  * short.
  */
 trainees.set(
-    // The ID for this ruleset, which must be the same as the Fathom type you
+    // The ID for this trainee, which must be the same as the Fathom type you
     // are evaluating, if you are using the Evaluator:
     'overlay',
 
@@ -37,11 +37,11 @@ trainees.set(
      // Bias is -139.3106 for this example, though that isn't needed until
      // production.
 
-     viewportSize: {width: 1024, height: 768},
      // The content-area size to use while training. Defaults to 1024x768.
+     viewportSize: {width: 1024, height: 768},
 
-     vectorType: 'overlay',
      // The type of node to extract features from when using the Vectorizer
+     vectorType: 'overlay',
 
      rulesetMaker:
         function () {
