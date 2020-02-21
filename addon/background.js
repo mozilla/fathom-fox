@@ -2,7 +2,7 @@
 function handleBackgroundScriptMessage(request, sender, sendResponse) {
     if (request.type === 'rulesetSucceededOnTabs') {
         // Run a given ruleset on a given set of tabs, and return an array of
-        // bools saying whether they got the right answer on each. It's
+        // responses saying whether they got the right answer on each. It's
         // necessary to do this in the background script so we have permission
         // to call the APIs we need.
         Promise.all(request.tabIds.map(
