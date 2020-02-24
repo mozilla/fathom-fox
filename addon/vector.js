@@ -52,7 +52,7 @@ class CorpusCollector extends PageVisitor {
         // Have the content script vectorize the page:
         let vector = undefined;
         let tries = 0;
-        const maxTries = this.otherOptions.retryOnError ? 100 : 1;
+        const maxTries = this.otherOptions.retryOnError ? 10 : 1;
         while (vector === undefined) {
             try {
                 tries++;
