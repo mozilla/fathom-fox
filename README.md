@@ -60,7 +60,7 @@ Once you have a decent set of coefficients and biases computed, paste them into 
 ## Tips
 
 * Before freezing pages with the Developer Tools panel, use Firefox's Responsive Design mode (command-option-M) to set a repeatable 1024x768 window size. The Vectorizer automatically sets this same size by default. This will ensure that the proper CSS (which may be driven by media queries) will be frozen (and later reloaded) with the page.
-* For maximum fidelity, do your corpus capture in a clean copy of Firefox with no other add-ons. (This will automatically happen if you invoke FathomFox with `yarn run browser`. Some ad blockers will make changes to the DOM, like adding style attributes to ad iframes to hide them.
+* For maximum fidelity, do your corpus capture in a clean copy of Firefox with no other add-ons. (This will automatically happen if you invoke FathomFox with `yarn run browser`.) Some ad blockers will make changes to the DOM, like adding style attributes to ad iframes to hide them.
 * You can press `Ctrl+Shift+O` to save and download a page for pages with hover-to-show elements you want visible upon saving.
 
 ## Thanks
