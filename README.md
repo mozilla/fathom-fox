@@ -8,7 +8,7 @@ Here is an example of how you might use FathomFox to develop a Fathom ruleset th
 
 ### Get FathomFox Running
 
-1. Clone the [FathomFox repository](https://github.com/mozilla/fathom-fox/). (This is needed to author rulesets. If you wish to merely collect corpus, you may install FathomFox from [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/fathomfox/).)
+1. Clone the [FathomFox repository](https://github.com/mozilla/fathom-fox/). (This is needed to author rulesets. If you wish merely to collect a corpus, you may install FathomFox from [addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/fathomfox/).)
 2. From within the checkout, install dependencies: `yarn run build`.
 3. Run a clean copy of Firefox with FathomFox installed: `yarn run browser`.
 4. Run `yarn run watch` in a separate terminal. This will keep your running copy of FathomFox up to date as you edit your ruleset.
@@ -72,6 +72,17 @@ Thanks to Treora for his excellent freeze-dry library!
 To work on FathomFox itself, do the steps under [Get FathomFox Running](#get-fathomfox-running) above.
 
 ## Version History
+
+### 3.3
+
+* The Vectorizer now operates in parallel, resulting in large speed gains.
+* Merge fathom-trainees info FathomFox. This makes fewer repos to clone, fewer addons to install, and fewer build processes to babysit for ruleset authors. It also means a simpler FathomFox with less message passing.
+* The Vectorizer now shows an error message when a scoring callback returns undefined. This helps catch certain common mistakes:
+  * A name mismatch between the `name` value passed into a rule and the name of the rule in the list of `[ruleName, coefficient]` pairs referenced in the ruleset
+  * A scoring callback failing to return a number
+  * Corner cases in DOM or CSSOM routines, e.g. `innerText` returning `null` instead of the empty string in Firefox
+* Add `isTarget` hook to trainees to customize what the Vectorizer considers a target.
+* Automatically add a slash to the end of the Vectorizer base URL if there isn't one.
 
 ### 3.2
 
