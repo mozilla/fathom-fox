@@ -5,7 +5,7 @@
     "description": "Tools for developing Fathom rulesets",
     "applications": {
         "gecko": {
-            "id": "fathomfox@mozilla.com"
+            "id": "{954efd86-8f62-49e7-8a65-80016051e382}"
         }
     },
     "icons": {
