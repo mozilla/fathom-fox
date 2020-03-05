@@ -119,7 +119,9 @@ function labelBadElement(traineeId, coeffs) {
 function vectorizeTab(traineeId) {
     const trainee = trainees.get(traineeId);
     const boundRuleset = trainee.rulesetMaker('dummy').against(window.document);
+    let time = performance.now()
     const fnodes = boundRuleset.get(type(trainee.vectorType));
+    time = performance.now() - time;
     const path = window.location.pathname;
     const isTarget = trainee.isTarget || (fnode => fnode.element.dataset.fathom === traineeId);
     const perNodeStuff = fnodes.map(function featureVectorForFnode(fnode) {
@@ -131,7 +133,8 @@ function vectorizeTab(traineeId) {
         };
     });
     return {filename: path.substr(path.lastIndexOf('/') + 1),
-            nodes: perNodeStuff};
+            nodes: perNodeStuff,
+            time};
 }
 
 /**
