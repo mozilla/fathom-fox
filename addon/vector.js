@@ -66,11 +66,11 @@ class CorpusCollector extends PageVisitor {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
                 // registered. The error goes away on retrying.
-                if (tries >= maxTries) {  // 100 is not enough.
+                if (tries >= maxTries) {  // 10 is not enough.
                     this.errorAndStop(`failed: ${error}`, tab.id, windowId);
                     break;
                 } else {
-                    await sleep(1000);
+                    await sleep(2000);
                 }
             }
         }
