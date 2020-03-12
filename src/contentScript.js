@@ -105,6 +105,24 @@ function labelBadElement(traineeId, coeffs) {
 }
 
 /**
+ * Given an element <p id="smoo"><b>foo</b></p>, return the string
+ * '<p id="smoo">'.
+ *
+ * Currently, this will miss weird spellings of closing tags, like </pre  >.
+ */
+function startTag(element) {
+    const startAndEndTags = element.cloneNode(false).outerHTML;  // false means shallow clone
+    let ret = '';
+    if (startAndEndTags.toUpperCase().endsWith('</' + element.tagName + '>')) {
+        // Strip off closing tag:
+        ret = startAndEndTags.slice(0, -(element.tagName.length + 3));
+    } else {
+        ret = startAndEndTags;
+    }
+    return ret.slice(0, 36);
+}
+
+/**
  * Return an array of unweighted scores for each element of a type, plus an
  * indication of whether it is a target element. This is useful to feed to an
  * external ML system. The return value looks like this:
@@ -129,7 +147,8 @@ function vectorizeTab(traineeId) {
         return {
             isTarget: isTarget(fnode),
             // Loop over ruleset.coeffs in order, and spit out each score:
-            features: Array.from(trainee.coeffs.keys()).map(ruleName => scoreMap.get(ruleName))
+            features: Array.from(trainee.coeffs.keys()).map(ruleName => scoreMap.get(ruleName)),
+            markup: startTag(fnode.element)
         };
     });
     return {filename: path.substr(path.lastIndexOf('/') + 1),
