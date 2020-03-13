@@ -113,6 +113,25 @@ class CorpusCollector extends PageVisitor {
     }
 
     async processAtEndOfRun() {
+        function compareByKey(key) {
+            function cmp(a, b) {
+                const keyA = key(a);
+                const keyB = key(b);
+                if (keyA < keyB) {
+                    return -1;
+                }
+                if (keyA > keyB) {
+                    return 1;
+                }
+                return 0;
+            }
+            return cmp;
+        }
+
+        // Sort by filename so they come out in a deterministic order. This is
+        // handy for comparing vectors with teammates for troubleshooting.
+        this.vectors.sort(compareByKey(item => item['filename']));
+
         // Save vectors to disk.
         await download(JSON.stringify(
                 {
