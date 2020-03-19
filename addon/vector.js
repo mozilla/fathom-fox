@@ -117,13 +117,7 @@ class CorpusCollector extends PageVisitor {
             function cmp(a, b) {
                 const keyA = key(a);
                 const keyB = key(b);
-                if (keyA < keyB) {
-                    return -1;
-                }
-                if (keyA > keyB) {
-                    return 1;
-                }
-                return 0;
+                return (keyA < keyB) ? -1 : ((keyA > keyB) ? 1 : 0);
             }
             return cmp;
         }
