@@ -2504,13 +2504,12 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.0"
 
-fathom-web@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/fathom-web/-/fathom-web-3.1.0.tgz#21ffc8e39c6cfa68272f772476de51ebcc23e281"
-  integrity sha512-XubnFEvTN9nNfqma9eHQOWfPiTj8RivBiwkq0YqWsSe1OJxqxOeFRfm3XdJCpmpCuXUg9xX8y9Fg6uTXb5nJQw==
+fathom-web@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/fathom-web/-/fathom-web-3.2.1.tgz#7cddc04acbd82d00480b206b0de81f2cd525fe49"
+  integrity sha512-VoLjqWbiRTI2aFQJFFh9WGFjfzHMLLswR5li+gO+lSucLfRlQMZ4pMo/RJlQGvwjjpVP3z3N7MHi+YoQ85nTrA==
   dependencies:
-    jsdom "^11.2.0"
-    wu "^2.1.0"
+    jsdom "^11.12.0"
 
 fd-slicer@~1.1.0:
   version "1.1.0"
@@ -3675,7 +3674,7 @@ jsbn@~0.1.0:
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
-jsdom@^11.2.0:
+jsdom@^11.12.0:
   version "11.12.0"
   resolved "https://registry.yarnpkg.com/jsdom/-/jsdom-11.12.0.tgz#1a80d40ddd378a1de59656e9e6dc5a3ba8657bc8"
   integrity sha512-y8Px43oyiBM13Zc1z780FrfNLJCXTL40EWlty/LXUtcjykRBNgLlCjWXpfSPBl2iv+N7koQN+dvqszHZgT/Fjw==
@@ -6865,11 +6864,6 @@ ws@^5.2.0:
   integrity sha512-jaHFD6PFv6UgoIVda6qZllptQsMlDEJkTQcybzzXDYM1XO9Y8em691FGMPmM46WGyLU4z9KMgQN+qrux/nhlHA==
   dependencies:
     async-limiter "~1.0.0"
-
-wu@^2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/wu/-/wu-2.1.0.tgz#7e72e3fba23e0ff669ddd537e1c857d3d4b1614f"
-  integrity sha1-fnLj+6I+D/Zp3dU34chX09SxYU8=
 
 xdg-basedir@^3.0.0:
   version "3.0.0"

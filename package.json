@@ -10,7 +10,7 @@
   },
   "license": "MPL-2.0",
   "devDependencies": {
-    "fathom-web": "^3.1.0",
+    "fathom-web": "^3.2.1",
     "freeze-dry": "^0.2.4",
     "rollup": "^1.17.0",
     "rollup-plugin-commonjs": "^10.0.1",
