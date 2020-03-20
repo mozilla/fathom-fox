@@ -52,7 +52,7 @@ class CorpusCollector extends PageVisitor {
         // Have the content script vectorize the page:
         let vector = undefined;
         let tries = 0;
-        const maxTries = this.otherOptions.retryOnError ? 10 : 1;
+        const maxTries = this.otherOptions.retryOnError ? 100 : 1;  // 10 is not enough.
         while (vector === undefined) {
             try {
                 tries++;
@@ -66,7 +66,7 @@ class CorpusCollector extends PageVisitor {
                 // We often get a "receiving end does not exist", even though
                 // the receiver is a background script that should always be
                 // registered. The error goes away on retrying.
-                if (tries >= maxTries) {  // 10 is not enough.
+                if (tries >= maxTries) {
                     this.errorAndStop(`failed: ${error}`, tab.id, windowId);
                     break;
                 } else {
