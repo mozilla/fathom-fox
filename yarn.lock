@@ -2504,10 +2504,10 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.0"
 
-fathom-web@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/fathom-web/-/fathom-web-3.2.1.tgz#7cddc04acbd82d00480b206b0de81f2cd525fe49"
-  integrity sha512-VoLjqWbiRTI2aFQJFFh9WGFjfzHMLLswR5li+gO+lSucLfRlQMZ4pMo/RJlQGvwjjpVP3z3N7MHi+YoQ85nTrA==
+fathom-web@^3.3.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/fathom-web/-/fathom-web-3.3.0.tgz#aa5f20e41ba153533fca4e5f53b452a921e31b88"
+  integrity sha512-B8jbSQwYedBVzcdpLlZlTsxWTuu8jm8kIX+d9noKe3zA7ERb6laBtH4KhDUpM39CqWZ/MsR+5pii4D2G8l+eKw==
   dependencies:
     jsdom "^11.12.0"
 
