@@ -139,8 +139,8 @@ class PageVisitor {
             // the success callback for ``browser.tabs.create()``.
             const urlIndexForMap = this.urlIndex;
             // Create a new tab with the current url.
-            // The tabs.onUpdated handler in visitAllPages() will dispatch a fathom:freeze
-            // event when the tab has completed loading.
+            // The tabs.onUpdated handler in visitAllPages() will dispatch a
+            // fathom:freeze event when the tab has completed loading.
             browser.tabs.create({
                 windowId: windowId,
                 url: this.urls[this.urlIndex].url,
@@ -149,7 +149,8 @@ class PageVisitor {
                 this.tabIdToUrlsIndex.set(tab.id, urlIndexForMap);
                 this.setCurrentStatus({message: 'loading', index: tab.id});
             }).catch(error => {
-                // TODO: How to handle a failure in loading the tab since we won't have a status item to display an error for?
+                // TODO: How to handle a failure in loading the tab since we
+                // won't have a status item to display an error for?
                 console.error(error);
             });
         } else {
