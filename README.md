@@ -1,3 +1,7 @@
+# This project has merged into the main Fathom repository.
+
+Please visit https://github.com/mozilla/fathom/tree/master/fathom_fox.
+
 # FathomFox
 
 A set of tools for developing [Fathom](http://mozilla.github.io/fathom/) rulesets within Firefox
